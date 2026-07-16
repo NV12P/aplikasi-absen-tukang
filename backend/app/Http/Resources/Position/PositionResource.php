@@ -7,13 +7,22 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PositionResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+
+            'id'=>$this->id,
+
+            'name'=>$this->name,
+
+            'daily_wage'=>$this->daily_wage,
+
+            'overtime_wage'=>$this->overtime_wage,
+
+            'casting_wage'=>$this->casting_wage,
+
+            'created_at'=>$this->created_at,
+
+        ];
     }
 }

@@ -12,4 +12,9 @@ class Position extends Model
         'overtime_wage',
         'casting_wage',
     ];
+
+    public function workers()
+{
+    return $this->hasMany(Worker::class);
+}
 }

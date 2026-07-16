@@ -2,28 +2,27 @@
 
 namespace App\Http\Requests\Position;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePositionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'name'=>'required|string|max:100',
+
+            'daily_wage'=>'required|integer|min:0',
+
+            'overtime_wage'=>'required|integer|min:0',
+
+            'casting_wage'=>'required|integer|min:0',
+
         ];
     }
 }

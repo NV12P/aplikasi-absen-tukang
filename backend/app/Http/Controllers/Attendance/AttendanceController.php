@@ -3,47 +3,52 @@
 namespace App\Http\Controllers\Attendance;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attendance;
+use App\Models\Worker;
+use App\Services\AttendanceService;
 use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request, AttendanceService $service)
     {
-        //
-    }
+        foreach ($request->workers as $item) {
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+            $worker = Worker::with('position')
+                ->findOrFail($item['worker_id']);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+            $result = $service->calculateWage(
+                $worker,
+                $item['hadir'],
+                $item['lembur'],
+                $item['cor']
+            );
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+            Attendance::updateOrCreate(
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+                [
+                    'worker_id'=>$worker->id,
+                    'date'=>$request->date
+                ],
+
+                [
+
+                    'status'=>$result['status'],
+
+                    'is_overtime'=>$result['is_overtime'],
+
+                    'daily_wage'=>$result['daily_wage']
+
+                ]
+
+            );
+
+        }
+
+        return response()->json([
+
+            'message'=>'Attendance Saved'
+
+        ]);
     }
-}
+};

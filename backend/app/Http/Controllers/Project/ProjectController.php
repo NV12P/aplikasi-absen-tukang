@@ -3,47 +3,85 @@
 namespace App\Http\Controllers\Project;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Project\StoreProjectRequest;
+use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Resources\Project\ProjectResource;
+use App\Models\Project;
+use App\Services\ProjectService;
 
 class ProjectController extends Controller
 {
+    protected ProjectService $service;
+
+    public function __construct(ProjectService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
-     * Display a listing of the resource.
+     * Menampilkan semua proyek
      */
     public function index()
     {
-        //
+        return ProjectResource::collection(
+            $this->service->all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Menyimpan proyek baru
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        //
+        $project = $this->service->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Project berhasil ditambahkan.',
+            'data' => new ProjectResource($project)
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Menampilkan detail proyek
      */
-    public function show(string $id)
+    public function show(Project $project)
     {
-        //
+        return response()->json([
+            'success' => true,
+            'data' => new ProjectResource($project)
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Mengubah data proyek
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
-        //
+        $project = $this->service->update(
+            $project,
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Project berhasil diperbarui.',
+            'data' => new ProjectResource($project)
+        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Menghapus proyek
      */
-    public function destroy(string $id)
+    public function destroy(Project $project)
     {
-        //
+        $this->service->delete($project);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Project berhasil dihapus.'
+        ]);
     }
 }
