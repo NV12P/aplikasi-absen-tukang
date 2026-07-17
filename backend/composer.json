@@ -8,8 +8,9 @@
     "require": {
         "php": "^8.5",
         "laravel/framework": "^13.8",
-        "laravel/sanctum": "^4.0",
-        "laravel/tinker": "^3.0"
+        "laravel/sanctum": "^4.3",
+        "laravel/tinker": "^3.0",
+        "maatwebsite/excel": "4.x-dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
