@@ -12,30 +12,22 @@ return new class extends Migration
 
             $table->id();
 
-            $table->foreignId('worker_id')
-                ->constrained()
-                ->cascadeOnDelete();
+$table->foreignId('worker_id')->constrained()->cascadeOnDelete();
 
-            $table->date('date');
+$table->date('date');
 
-            $table->enum('status', [
-                'HADIR',
-                'COR',
-                'ALPHA'
-            ]);
+$table->enum('status', [
+    'hadir',
+    'lembur',
+    'cor',
+    'alpha'
+]);
 
-            $table->boolean('is_overtime')->default(false);
+$table->integer('wage');
 
-            $table->integer('daily_wage');
+$table->timestamps();
 
-            $table->text('notes')->nullable();
-
-            $table->timestamps();
-
-            $table->unique([
-                'worker_id',
-                'date'
-            ]);
+$table->unique(['worker_id', 'date']);
         });
     }
 

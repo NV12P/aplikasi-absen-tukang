@@ -3,52 +3,44 @@
 namespace App\Http\Controllers\Attendance;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
-use App\Models\Worker;
+use App\Http\Requests\Attendance\StoreAttendanceRequest;
 use App\Services\AttendanceService;
-use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
-    public function store(Request $request, AttendanceService $service)
+    public function __construct(
+        protected AttendanceService $service
+    ) {}
+
+    /**
+     * Daftar pekerja berdasarkan proyek
+     */
+    public function projectWorkers(int $projectId)
     {
-        foreach ($request->workers as $item) {
-
-            $worker = Worker::with('position')
-                ->findOrFail($item['worker_id']);
-
-            $result = $service->calculateWage(
-                $worker,
-                $item['hadir'],
-                $item['lembur'],
-                $item['cor']
-            );
-
-            Attendance::updateOrCreate(
-
-                [
-                    'worker_id'=>$worker->id,
-                    'date'=>$request->date
-                ],
-
-                [
-
-                    'status'=>$result['status'],
-
-                    'is_overtime'=>$result['is_overtime'],
-
-                    'daily_wage'=>$result['daily_wage']
-
-                ]
-
-            );
-
-        }
-
         return response()->json([
-
-            'message'=>'Attendance Saved'
-
+            'success' => true,
+            'data' => $this->service->projectWorkers($projectId)
         ]);
     }
-};
+
+    /**
+     * Simpan absensi
+     */
+    public function store(StoreAttendanceRequest $request)
+    {
+        return $this->service->storeAttendance(
+            $request->validated()
+        );
+    }
+
+    /**
+     * Absensi hari ini
+     */
+    public function today()
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $this->service->today()
+        ]);
+    }
+}

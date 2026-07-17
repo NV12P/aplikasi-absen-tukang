@@ -2,28 +2,44 @@
 
 namespace App\Http\Requests\Attendance;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAttendanceRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+
+            'project_id' => [
+                'required',
+                'exists:projects,id'
+            ],
+
+            'date' => [
+                'required',
+                'date'
+            ],
+
+            'attendances' => [
+                'required',
+                'array'
+            ],
+
+            'attendances.*.worker_id' => [
+                'required',
+                'exists:workers,id'
+            ],
+
+            'attendances.*.status' => [
+                'required',
+                'in:hadir,lembur,cor,alpha'
+            ],
+
         ];
     }
 }

@@ -32,4 +32,11 @@ class ProjectRepository
     {
         return $project->delete();
     }
+
+    public function active()
+{
+    return Project::where('is_active', true)
+        ->orderBy('name')
+        ->get();
+}
 }

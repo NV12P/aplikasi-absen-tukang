@@ -10,14 +10,11 @@ class Attendance extends Model
         'worker_id',
         'date',
         'status',
-        'is_overtime',
-        'daily_wage',
-        'notes',
+        'wage'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'is_overtime' => 'boolean',
     ];
 
     public function worker()

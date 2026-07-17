@@ -2,48 +2,96 @@
 
 namespace App\Services;
 
-use App\Models\Attendance;
+use App\Repositories\AttendanceRepository;
+use Illuminate\Support\Facades\DB;
 use App\Models\Worker;
+use App\Repositories\WorkerRepository;
+
 
 class AttendanceService
 {
-    public function calculateWage(
-        Worker $worker,
-        bool $hadir,
-        bool $lembur,
-        bool $cor
-    ): array {
+    public function __construct(
+    protected AttendanceRepository $repository,
+    protected WorkerRepository $workerRepository,
+    protected WageCalculatorService $wageCalculator
+) {}
 
-        $position = $worker->position;
+   
 
-        if ($cor) {
+    
 
-            return [
-                'status' => 'COR',
-                'is_overtime' => false,
-                'daily_wage' => $position->casting_wage
+public function storeAttendance(array $data)
+{
+    DB::transaction(function () use ($data) {
+
+        $rows = [];
+
+        foreach ($data['attendances'] as $attendance) {
+
+            if ($this->repository->exists(
+    $attendance['worker_id'],
+    $data['date']
+)) {
+
+    $worker = Worker::find($attendance['worker_id']);
+
+    return response()->json([
+        'success' => false,
+        'message' => "Pekerja {$worker->name} sudah diabsen pada tanggal {$data['date']}."
+    ], 422);
+
+}
+
+            $worker = Worker::with('position')
+    ->findOrFail($attendance['worker_id']);
+
+if ($worker->project_id != $data['project_id']) {
+    abort(422, 'Pekerja tidak termasuk dalam proyek yang dipilih.');
+}
+
+           $wage = $this->wageCalculator->calculate(
+    $worker->position,
+    $attendance['status']
+);
+
+            $rows[] = [
+
+                'worker_id'=>$attendance['worker_id'],
+
+                'date'=>$data['date'],
+
+                'status'=>$attendance['status'],
+
+                'wage'=>$wage,
+
+                'created_at'=>now(),
+
+                'updated_at'=>now(),
+
             ];
+
         }
 
-        if ($hadir) {
+        $this->repository->createMany($rows);
 
-            $wage = $position->daily_wage;
+    });
 
-            if ($lembur) {
-                $wage += $position->overtime_wage;
-            }
+    return response()->json([
+    'success' => true,
+    'message' => 'Absensi berhasil disimpan.',
+    'total_data' => count($data['attendances'])
+], 201);
+}
 
-            return [
-                'status' => 'HADIR',
-                'is_overtime' => $lembur,
-                'daily_wage' => $wage
-            ];
-        }
+public function projectWorkers(int $projectId)
+{
+    return $this->workerRepository->byProject($projectId);
+}
 
-        return [
-            'status' => 'ALPHA',
-            'is_overtime' => false,
-            'daily_wage' => 0
-        ];
-    }
+public function today()
+{
+    return $this->repository->today();
+}
+
+
 }

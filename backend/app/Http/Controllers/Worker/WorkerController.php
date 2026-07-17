@@ -3,47 +3,85 @@
 namespace App\Http\Controllers\Worker;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Worker\StoreWorkerRequest;
+use App\Http\Requests\Worker\UpdateWorkerRequest;
+use App\Http\Resources\Worker\WorkerResource;
+use App\Models\Worker;
+use App\Services\WorkerService;
 
 class WorkerController extends Controller
 {
+    protected WorkerService $service;
+
+    public function __construct(WorkerService $service)
+    {
+        $this->service = $service;
+    }
+
     /**
-     * Display a listing of the resource.
+     * Menampilkan semua pekerja
      */
     public function index()
     {
-        //
+        return WorkerResource::collection(
+            $this->service->all()
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Menyimpan pekerja baru
      */
-    public function store(Request $request)
+    public function store(StoreWorkerRequest $request)
     {
-        //
+        $worker = $this->service->create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pekerja berhasil ditambahkan.',
+            'data' => new WorkerResource($worker)
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Detail pekerja
      */
-    public function show(string $id)
+    public function show(Worker $worker)
     {
-        //
+        return response()->json([
+            'success' => true,
+            'data' => new WorkerResource($worker->load(['project', 'position']))
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update pekerja
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateWorkerRequest $request, Worker $worker)
     {
-        //
+        $worker = $this->service->update(
+            $worker,
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pekerja berhasil diperbarui.',
+            'data' => new WorkerResource($worker)
+        ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Hapus pekerja
      */
-    public function destroy(string $id)
+    public function destroy(Worker $worker)
     {
-        //
+        $this->service->delete($worker);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pekerja berhasil dihapus.'
+        ]);
     }
 }
