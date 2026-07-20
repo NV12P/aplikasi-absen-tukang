@@ -12,14 +12,11 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Dashboard\DashboardController;
 
-<<<<<<< HEAD
-// ─── Auth (publik) ────────────────────────────────────────────────────────────
-Route::post('/login', LoginController::class);
-=======
 Route::get('/attendance/report', [AttendanceReportController::class, 'index']);
 
-Route::prefix('attendance')->group(function () {
->>>>>>> 905f555 (feat: attendance reports)
+
+// ─── Auth (publik) ────────────────────────────────────────────────────────────
+Route::post('/login', LoginController::class);
 
 // ─── Route yang butuh autentikasi ─────────────────────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
