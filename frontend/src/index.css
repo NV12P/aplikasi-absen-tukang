@@ -17,6 +17,7 @@
   --danger-bg: #fee2e2;
   --info: #3b82f6;
   --info-bg: #dbeafe;
+  --sidebar-width: 260px;
 }
 
 * {
@@ -53,7 +54,8 @@ ul {
   list-style: none;
 }
 
-/* Common Layout */
+/* ─── Layout ─────────────────────────────────────────────────────────────────── */
+
 .app-container {
   display: flex;
   height: 100vh;
@@ -61,18 +63,32 @@ ul {
   overflow: hidden;
 }
 
+/* Overlay gelap saat sidebar terbuka di mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────────── */
+
 .sidebar {
-  width: 260px;
+  width: var(--sidebar-width);
   background-color: var(--primary);
   color: #1a1a1a;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   position: relative;
+  z-index: 50;
+  transition: transform 0.3s ease;
 }
 
 .sidebar-header {
   padding: 24px;
+  position: relative;
 }
 
 .sidebar-header h1 {
@@ -84,6 +100,26 @@ ul {
 .sidebar-header p {
   font-size: 12px;
   opacity: 0.8;
+}
+
+/* Tombol X close sidebar — disembunyikan di desktop */
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #1a1a1a;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.sidebar-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .sidebar-nav {
@@ -137,15 +173,20 @@ ul {
   background-color: #ffffff;
 }
 
+/* ─── Main Content ─────────────────────────────────────────────────────────────── */
+
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  min-width: 0; /* penting agar flex child tidak overflow */
 }
 
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
+
 .top-header {
-  height: 72px;
+  height: 64px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -155,17 +196,46 @@ ul {
   position: sticky;
   top: 0;
   z-index: 10;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Tombol hamburger — disembunyikan di desktop */
+.hamburger-btn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  color: var(--text-main);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.hamburger-btn:hover {
+  background-color: var(--border-color);
 }
 
 .page-title {
   font-size: 18px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 24px;
+  flex-shrink: 0;
 }
 
 .user-profile {
@@ -177,6 +247,7 @@ ul {
 .user-name {
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .user-avatar {
@@ -185,14 +256,18 @@ ul {
   border-radius: 50%;
   background-color: #ddd;
   object-fit: cover;
+  flex-shrink: 0;
 }
+
+/* ─── Page Container ─────────────────────────────────────────────────────────── */
 
 .page-container {
   padding: 32px;
   flex: 1;
 }
 
-/* Card */
+/* ─── Card ───────────────────────────────────────────────────────────────────── */
+
 .card {
   background-color: var(--bg-surface);
   border-radius: 12px;
@@ -201,7 +276,8 @@ ul {
   border: 1px solid var(--border-color);
 }
 
-/* Buttons */
+/* ─── Buttons ────────────────────────────────────────────────────────────────── */
+
 .btn-primary {
   background-color: var(--primary);
   color: #1a1a1a;
@@ -213,6 +289,7 @@ ul {
   align-items: center;
   gap: 8px;
   transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .btn-primary:hover {
@@ -237,7 +314,8 @@ ul {
   background-color: var(--bg-surface);
 }
 
-/* Inputs */
+/* ─── Inputs ─────────────────────────────────────────────────────────────────── */
+
 .input-group {
   position: relative;
 }
@@ -253,7 +331,6 @@ ul {
 .input-field {
   width: 100%;
   padding: 10px 12px;
-  padding-left: 36px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
@@ -282,9 +359,11 @@ ul {
   background-size: 16px;
 }
 
-/* Table */
+/* ─── Table ──────────────────────────────────────────────────────────────────── */
+
 .table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -301,6 +380,7 @@ ul {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
 }
 
 .table td {
@@ -310,16 +390,287 @@ ul {
   vertical-align: middle;
 }
 
-/* Badges */
+/* ─── Badges ─────────────────────────────────────────────────────────────────── */
+
 .badge {
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
   display: inline-block;
+  white-space: nowrap;
 }
 
 .badge-success { background-color: var(--success-bg); color: var(--success); }
 .badge-warning { background-color: var(--warning-bg); color: var(--warning); }
-.badge-danger { background-color: var(--danger-bg); color: var(--danger); }
-.badge-info { background-color: var(--info-bg); color: var(--info); }
+.badge-danger  { background-color: var(--danger-bg);  color: var(--danger);  }
+.badge-info    { background-color: var(--info-bg);    color: var(--info);    }
+
+/* ─── Radio Group ────────────────────────────────────────────────────────────── */
+
+.radio-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 500;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.radio-label:hover {
+  background-color: #f8fafc;
+}
+
+.radio-label.selected {
+  background-color: #fef3c7;
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+.radio-label.selected.danger {
+  background-color: #fee2e2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+.radio-label input[type="radio"] {
+  display: none;
+}
+
+/* ─── Stats Grid (Dashboard) ─────────────────────────────────────────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* ─── Page Toolbar ───────────────────────────────────────────────────────────── */
+/* Baris atas halaman yang berisi filter + tombol aksi */
+
+.page-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-toolbar-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.page-toolbar-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE — Tablet (≤ 1024px)
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .page-container {
+    padding: 24px;
+  }
+
+  .top-header {
+    padding: 0 24px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE — Mobile (≤ 768px)
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  /* Tampilkan overlay */
+  .sidebar-overlay {
+    display: block;
+  }
+
+  /* Sidebar jadi fixed, slide dari kiri */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Saat terbuka */
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+  }
+
+  /* Tampilkan tombol close di sidebar */
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  /* Tampilkan tombol hamburger di header */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  /* Header */
+  .top-header {
+    padding: 0 16px;
+    height: 56px;
+  }
+
+  .page-title {
+    font-size: 15px;
+  }
+
+  /* Sembunyikan nama user di layar sangat kecil, tampilkan avatar saja */
+  .user-name {
+    display: none;
+  }
+
+  /* Page container */
+  .page-container {
+    padding: 16px;
+  }
+
+  /* Card */
+  .card {
+    padding: 16px;
+    border-radius: 10px;
+  }
+
+  /* Stats grid jadi 2 kolom di mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Page toolbar stack vertikal */
+  .page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-toolbar-left,
+  .page-toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Table lebih compact */
+  .table th,
+  .table td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
+  /* Tombol aksi di dalam tabel */
+  .table td button {
+    padding: 6px;
+  }
+
+  /* Radio group absensi lebih kecil */
+  .radio-label {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Input field padding normal (tanpa icon default) */
+  .input-field {
+    font-size: 16px; /* mencegah zoom otomatis iOS */
+  }
+
+  select,
+  .select-field {
+    font-size: 16px; /* mencegah zoom otomatis iOS */
+  }
+
+  /* Btn primary full width di mobile jika perlu */
+  .btn-primary-block {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE — Mobile kecil (≤ 480px)
+───────────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 480px) {
+  /* Stats grid jadi 1 kolom di layar sangat sempit */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .page-title {
+    font-size: 14px;
+  }
+
+  .page-container {
+    padding: 12px;
+  }
+}
+
+
+/* ─── Attendance Progress Bar ────────────────────────────────────────────────── */
+
+.attendance-progress-bar {
+  width: 120px;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: block;
+  position: relative;
+}
+
+.attendance-progress-fill {
+  display: block;
+  height: 6px;
+  background-color: #655416;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  min-width: 4px;
+}
+
+@media (max-width: 768px) {
+  .attendance-progress-bar {
+    width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance-progress-bar {
+    width: 40px;
+  }
+}

@@ -1,4 +1,4 @@
-/* App specific styles */
+/* ─── Modal ──────────────────────────────────────────────────────────────────── */
 
 .modal-overlay {
   position: fixed;
@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 16px;
 }
 
 .modal-content {
@@ -18,7 +19,9 @@
   border-radius: 12px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
 }
@@ -29,6 +32,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-surface);
+  z-index: 1;
+  border-radius: 12px 12px 0 0;
 }
 
 .modal-header h2 {
@@ -50,7 +58,13 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  position: sticky;
+  bottom: 0;
+  background-color: var(--bg-surface);
+  border-radius: 0 0 12px 12px;
 }
+
+/* ─── Buttons ────────────────────────────────────────────────────────────────── */
 
 .btn-secondary {
   padding: 10px 20px;
@@ -61,11 +75,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-family: inherit;
 }
 
 .btn-secondary:hover {
   background-color: #f1f5f9;
 }
+
+/* ─── Form Group ─────────────────────────────────────────────────────────────── */
 
 .form-group {
   display: flex;
@@ -79,45 +96,158 @@
   color: var(--text-main);
 }
 
-/* Radio Group Styles for Absensi */
-.radio-group {
+/* ─── Login Page ─────────────────────────────────────────────────────────────── */
+
+.login-page {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  height: 100vh;
+  width: 100vw;
+  background-color: var(--bg-page);
 }
 
-.radio-label {
-  display: inline-flex;
+.login-branding {
+  flex: 1;
+  background-color: var(--primary);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-surface);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 13px;
+  justify-content: center;
+  padding: 40px;
+}
+
+.login-branding h1 {
+  font-size: 48px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.login-branding p {
+  font-size: 18px;
   font-weight: 500;
-  user-select: none;
+  color: #1a1a1a;
+  text-align: center;
 }
 
-.radio-label:hover {
-  background-color: #f8fafc;
+.login-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
 }
 
-.radio-label.selected {
-  background-color: #fef3c7;
-  border-color: #f59e0b;
-  color: #d97706;
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
 }
 
-.radio-label.selected.danger {
-  background-color: #fee2e2;
-  border-color: #ef4444;
-  color: #b91c1c;
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────────── */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .login-branding h1 {
+    font-size: 36px;
+  }
+
+  .login-branding p {
+    font-size: 16px;
+  }
 }
 
-.radio-label input[type="radio"] {
-  display: none;
+/* Mobile */
+@media (max-width: 768px) {
+  /* Modal jadi full bottom sheet di mobile */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-content {
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+  }
+
+  .modal-header {
+    border-radius: 16px 16px 0 0;
+    padding: 16px 20px;
+  }
+
+  .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .modal-body {
+    padding: 20px;
+    gap: 14px;
+  }
+
+  .modal-footer {
+    padding: 12px 20px;
+    gap: 10px;
+  }
+
+  .modal-footer .btn-secondary,
+  .modal-footer .btn-primary {
+    flex: 1;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  /* Login page: stack vertikal */
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-branding {
+    flex: none;
+    padding: 32px 24px;
+    min-height: 160px;
+  }
+
+  .login-branding h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .login-branding p {
+    font-size: 14px;
+  }
+
+  .login-form-wrapper {
+    flex: 1;
+    padding: 24px 16px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .login-card {
+    padding: 24px;
+  }
+
+  /* Sembunyikan label nama user, tampilkan hanya avatar */
+  .user-name {
+    display: none;
+  }
+
+  /* Form group dua kolom jadi satu kolom */
+  .form-row-2col {
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+}
+
+/* Mobile kecil */
+@media (max-width: 480px) {
+  .login-branding h1 {
+    font-size: 24px;
+  }
+
+  .login-branding {
+    padding: 24px 16px;
+    min-height: 140px;
+  }
 }
