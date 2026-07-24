@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { fetchApi } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,6 +28,7 @@ interface Worker {
 
 const Pekerja = () => {
   const { token, logout } = useAuth();
+  const { toast, confirm } = useNotification();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -98,12 +101,21 @@ const Pekerja = () => {
   };
 
   const handleDelete = async (id: number, name: string) => {
-    if (window.confirm(`Hapus pekerja "${name}"?`)) {
+    const isConfirmed = await confirm({
+      title: 'Hapus Pekerja',
+      message: `Apakah Anda yakin ingin menghapus pekerja "${name}"? Data pekerja ini beserta riwayatnya akan dihapus.`,
+      type: 'danger',
+      confirmText: 'Ya, Hapus Pekerja',
+      cancelText: 'Batal'
+    });
+
+    if (isConfirmed) {
       try {
         await fetchApi(`/workers/${id}`, { method: 'DELETE', token });
+        toast.success(`Pekerja "${name}" berhasil dihapus.`);
         loadData();
       } catch (error: any) {
-        alert(error.message || 'Gagal menghapus pekerja');
+        toast.error(error.message || 'Gagal menghapus pekerja');
       }
     }
   };
@@ -119,13 +131,15 @@ const Pekerja = () => {
       };
       if (editingWorker) {
         await fetchApi(`/workers/${editingWorker.id}`, { method: 'PUT', token, body: JSON.stringify(payload) });
+        toast.success(`Data pekerja "${formData.name}" berhasil diperbarui.`);
       } else {
         await fetchApi('/workers', { method: 'POST', token, body: JSON.stringify(payload) });
+        toast.success(`Pekerja baru "${formData.name}" berhasil ditambahkan.`);
       }
       setIsModalOpen(false);
       loadData();
     } catch (error: any) {
-      alert(error.message || 'Gagal menyimpan pekerja');
+      toast.error(error.message || 'Gagal menyimpan pekerja');
     } finally {
       setSubmitting(false);
     }
@@ -148,17 +162,16 @@ const Pekerja = () => {
       {/* Toolbar */}
       <div className="page-toolbar">
         <div className="page-toolbar-left">
-          <select
-            className="select-field"
+          <CustomSelect
             value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            style={{ minWidth: '180px' }}
-          >
-            <option value="">Semua Proyek...</option>
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedProject(val)}
+            placeholder="Semua Proyek..."
+            style={{ minWidth: '200px' }}
+            options={[
+              { value: '', label: 'Semua Proyek...' },
+              ...projects.map((p) => ({ value: p.id, label: p.name }))
+            ]}
+          />
         </div>
         <div className="page-toolbar-right">
           <button
@@ -265,45 +278,41 @@ const Pekerja = () => {
                   </div>
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>Jabatan</label>
-                    <select
-                      className="select-field"
-                      required
+                    <CustomSelect
                       value={formData.position_id}
-                      onChange={(e) => setFormData({ ...formData, position_id: e.target.value })}
-                    >
-                      <option value="">Pilih Jabatan...</option>
-                      {positions.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => setFormData({ ...formData, position_id: val })}
+                      placeholder="Pilih Jabatan..."
+                      options={[
+                        { value: '', label: 'Pilih Jabatan...' },
+                        ...positions.map((p) => ({ value: p.id, label: p.name }))
+                      ]}
+                    />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label>Penugasan Proyek</label>
-                  <select
-                    className="select-field"
-                    required
+                  <CustomSelect
                     value={formData.project_id}
-                    onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
-                  >
-                    <option value="">Pilih Proyek...</option>
-                    {projects.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, project_id: val })}
+                    placeholder="Pilih Proyek..."
+                    options={[
+                      { value: '', label: 'Pilih Proyek...' },
+                      ...projects.map((p) => ({ value: p.id, label: p.name }))
+                    ]}
+                  />
                 </div>
 
                 <div className="form-group">
                   <label>Status</label>
-                  <select
-                    className="select-field"
+                  <CustomSelect
                     value={formData.is_active ? 'true' : 'false'}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
-                  >
-                    <option value="true">Aktif</option>
-                    <option value="false">Nonaktif</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, is_active: val === 'true' })}
+                    options={[
+                      { value: 'true', label: 'Aktif' },
+                      { value: 'false', label: 'Nonaktif' }
+                    ]}
+                  />
                 </div>
               </div>
 

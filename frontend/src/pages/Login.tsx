@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const Login = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { toast } = useNotification();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,13 +32,18 @@ const Login = () => {
 
       if (response.ok && data.success) {
         login(data.data.token, data.data.user);
+        toast.success(`Selamat datang kembali, ${data.data.user.name || 'Admin'}!`);
         navigate('/');
       } else {
-        setErrorMsg(data.message || 'Login failed');
+        const msg = data.message || 'Login gagal. Periksa email dan password.';
+        setErrorMsg(msg);
+        toast.error(msg);
       }
     } catch (error) {
       console.error('Login error:', error);
-      setErrorMsg('Gagal terhubung ke server');
+      const msg = 'Gagal terhubung ke server';
+      setErrorMsg(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

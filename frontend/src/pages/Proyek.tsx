@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Edit2, Trash2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { fetchApi } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,6 +19,7 @@ interface Project {
 
 const Proyek = () => {
   const { token, logout } = useAuth();
+  const { toast, confirm } = useNotification();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,12 +77,21 @@ const Proyek = () => {
   };
 
   const handleDelete = async (id: number, name: string) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus proyek "${name}"?`)) {
+    const isConfirmed = await confirm({
+      title: 'Hapus Proyek',
+      message: `Apakah Anda yakin ingin menghapus proyek "${name}"? Data yang dihapus tidak dapat dikembalikan.`,
+      type: 'danger',
+      confirmText: 'Ya, Hapus Proyek',
+      cancelText: 'Batal'
+    });
+
+    if (isConfirmed) {
       try {
         await fetchApi(`/projects/${id}`, { method: 'DELETE', token });
+        toast.success(`Proyek "${name}" berhasil dihapus.`);
         loadProjects();
       } catch (error: any) {
-        alert(error.message || 'Gagal menghapus proyek');
+        toast.error(error.message || 'Gagal menghapus proyek');
       }
     }
   };
@@ -90,13 +102,15 @@ const Proyek = () => {
     try {
       if (editingProject) {
         await fetchApi(`/projects/${editingProject.id}`, { method: 'PUT', token, body: JSON.stringify(formData) });
+        toast.success(`Proyek "${formData.name}" berhasil diperbarui.`);
       } else {
         await fetchApi('/projects', { method: 'POST', token, body: JSON.stringify(formData) });
+        toast.success(`Proyek "${formData.name}" berhasil ditambahkan.`);
       }
       setIsModalOpen(false);
       loadProjects();
     } catch (error: any) {
-      alert(error.message || 'Gagal menyimpan proyek');
+      toast.error(error.message || 'Gagal menyimpan proyek');
     } finally {
       setSubmitting(false);
     }
@@ -225,14 +239,14 @@ const Proyek = () => {
 
                 <div className="form-group">
                   <label>Status</label>
-                  <select
-                    className="select-field"
+                  <CustomSelect
                     value={formData.is_active ? 'true' : 'false'}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
-                  >
-                    <option value="true">Aktif</option>
-                    <option value="false">Selesai</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, is_active: val === 'true' })}
+                    options={[
+                      { value: 'true', label: 'Aktif' },
+                      { value: 'false', label: 'Selesai' }
+                    ]}
+                  />
                 </div>
               </div>
 

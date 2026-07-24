@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Download, Printer, Search } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { fetchApi } from '../utils/api';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { useNavigate } from 'react-router-dom';
 
 interface Project {
@@ -81,17 +82,16 @@ const RekapAbsensi = () => {
       {/* Toolbar */}
       <div className="page-toolbar">
         <div className="page-toolbar-left">
-          <select
-            className="select-field"
+          <CustomSelect
             value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            style={{ minWidth: '160px' }}
-          >
-            <option value="">Pilih Proyek...</option>
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedProject(val)}
+            placeholder="Pilih Proyek..."
+            style={{ minWidth: '180px' }}
+            options={[
+              { value: '', label: 'Pilih Proyek...' },
+              ...projects.map((p) => ({ value: p.id, label: p.name }))
+            ]}
+          />
 
           <input
             type="date"
@@ -118,10 +118,6 @@ const RekapAbsensi = () => {
           <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-surface)', fontSize: '14px', whiteSpace: 'nowrap' }}>
             <Download size={16} />
             <span>Export</span>
-          </button>
-          <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-surface)', fontSize: '14px', whiteSpace: 'nowrap' }}>
-            <Printer size={16} />
-            <span>Cetak</span>
           </button>
         </div>
       </div>

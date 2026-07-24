@@ -1,5 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Compass, Users, CalendarDays, BarChart2, LogOut, X } from 'lucide-react';
+import { useNavigate, NavLink } from 'react-router-dom';
+import { LayoutDashboard, Compass, Users, CalendarDays, BarChart2, LogOut, X, Building2, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface SidebarProps {
@@ -30,35 +30,46 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     }
   };
 
-  // Tutup sidebar saat nav-item diklik (untuk mobile)
   const handleNavClick = () => {
     onClose();
   };
 
   return (
-    <div className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+    <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
+      {/* Header Branding */}
       <div className="sidebar-header">
-        <h1>CV Fortuna Aeterna</h1>
-        <p>Enterprise Construction</p>
-        {/* Tombol close hanya muncul di mobile */}
+        <div className="sidebar-brand">
+          <div className="sidebar-logo">
+            <Building2 size={22} />
+          </div>
+          <div className="sidebar-brand-text">
+            <h1>CV Fortuna Aeterna</h1>
+            <p>Absensi & Kelola Pekerja</p>
+          </div>
+        </div>
+
         <button
           className="sidebar-close-btn"
           onClick={onClose}
           aria-label="Tutup menu"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
       </div>
 
+      {/* Navigation Links */}
       <nav className="sidebar-nav">
+        <div className="nav-group-label">NAVIGASI UTAMA</div>
+
         <NavLink
           to="/"
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           end
           onClick={handleNavClick}
         >
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
+          <div className="nav-item-icon"><LayoutDashboard size={19} /></div>
+          <span className="nav-item-text">Dashboard</span>
+          <ChevronRight size={15} className="nav-item-arrow" />
         </NavLink>
 
         <NavLink
@@ -66,8 +77,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           onClick={handleNavClick}
         >
-          <Compass size={20} />
-          <span>Proyek</span>
+          <div className="nav-item-icon"><Compass size={19} /></div>
+          <span className="nav-item-text">Proyek</span>
+          <ChevronRight size={15} className="nav-item-arrow" />
         </NavLink>
 
         <NavLink
@@ -75,8 +87,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           onClick={handleNavClick}
         >
-          <Users size={20} />
-          <span>Kelola Pekerja</span>
+          <div className="nav-item-icon"><Users size={19} /></div>
+          <span className="nav-item-text">Kelola Pekerja</span>
+          <ChevronRight size={15} className="nav-item-arrow" />
         </NavLink>
 
         <NavLink
@@ -84,8 +97,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           onClick={handleNavClick}
         >
-          <CalendarDays size={20} />
-          <span>Input Absensi</span>
+          <div className="nav-item-icon"><CalendarDays size={19} /></div>
+          <span className="nav-item-text">Input Absensi</span>
+          <ChevronRight size={15} className="nav-item-arrow" />
         </NavLink>
 
         <NavLink
@@ -93,18 +107,21 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
           onClick={handleNavClick}
         >
-          <BarChart2 size={20} />
-          <span>Rekap Absensi</span>
+          <div className="nav-item-icon"><BarChart2 size={19} /></div>
+          <span className="nav-item-text">Rekap Absensi</span>
+          <ChevronRight size={15} className="nav-item-arrow" />
         </NavLink>
       </nav>
 
+      {/* Footer Logout & App Version */}
       <div className="sidebar-footer">
         <button className="logout-btn" onClick={handleLogout}>
           <LogOut size={18} />
-          <span>Logout</span>
+          <span>Keluar Aplikasi</span>
         </button>
+        <div className="sidebar-version">v1.0.0 • Enterprise Edition</div>
       </div>
-    </div>
+    </aside>
   );
 };
 

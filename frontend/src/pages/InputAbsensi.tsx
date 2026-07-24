@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import { fetchApi } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +25,7 @@ interface AttendanceState {
 
 const InputAbsensi = () => {
   const { token, logout } = useAuth();
+  const { toast } = useNotification();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -82,7 +85,7 @@ const InputAbsensi = () => {
 
   const handleSave = async () => {
     if (!selectedProject) {
-      alert('Pilih proyek terlebih dahulu!');
+      toast.warning('Silakan pilih proyek terlebih dahulu!');
       return;
     }
     setSubmitting(true);
@@ -98,9 +101,9 @@ const InputAbsensi = () => {
         }))
       };
       await fetchApi('/attendance/store', { method: 'POST', token, body: JSON.stringify(payload) });
-      alert('Absensi berhasil disimpan!');
+      toast.success('Data absensi berhasil disimpan!');
     } catch (error: any) {
-      alert(error.message || 'Gagal menyimpan absensi');
+      toast.error(error.message || 'Gagal menyimpan absensi');
     } finally {
       setSubmitting(false);
     }
@@ -111,17 +114,16 @@ const InputAbsensi = () => {
       {/* Toolbar */}
       <div className="page-toolbar">
         <div className="page-toolbar-left">
-          <select
-            className="select-field"
+          <CustomSelect
             value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            style={{ minWidth: '200px' }}
-          >
-            <option value="">Pilih Proyek...</option>
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedProject(val)}
+            placeholder="Pilih Proyek..."
+            style={{ minWidth: '220px' }}
+            options={[
+              { value: '', label: 'Pilih Proyek...' },
+              ...projects.map((p) => ({ value: p.id, label: p.name }))
+            ]}
+          />
         </div>
         <div className="page-toolbar-right">
           <button
