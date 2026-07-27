@@ -16,15 +16,15 @@ class AttendanceReportController extends Controller
     {
         $request->validate([
             'project_id' => ['required', 'exists:projects,id'],
-            'week'       => ['required', 'date']
+            'week'       => ['nullable', 'date'],
+            'date_from'  => ['nullable', 'date'],
         ]);
+
+        $week = $request->week ?? $request->date_from ?? now()->toDateString();
 
         return response()->json([
             'success' => true,
-            'data' => $this->service->weeklyReport(
-                $request->project_id,
-                $request->week
-            )
+            'data'    => $this->service->weeklyReport((int) $request->project_id, $week)
         ]);
     }
 }

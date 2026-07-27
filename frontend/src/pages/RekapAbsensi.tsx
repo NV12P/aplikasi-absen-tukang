@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Download, Search, Wallet, Users } from 'lucide-react';
+import { Download, Search, Wallet, Users, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { fetchApi } from '../utils/api';
+import { fetchApi, downloadFileApi } from '../utils/api';
 import { CustomSelect } from '../components/ui/CustomSelect';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,21 +10,11 @@ interface Project {
   name: string;
 }
 
-interface AttendanceDetail {
-  id: number;
-  date: string;
-  worker_id: number;
-  worker_name: string;
-  position: string;
-  project: string;
-  status: 'hadir' | 'lembur' | 'cor' | 'alpha';
-  wage: number;
-}
-
 interface WorkerRow {
   worker_id: number;
   worker_name: string;
   position: string;
+  daily_wage: number;
   days: { [date: string]: 'hadir' | 'lembur' | 'cor' | 'alpha' };
   total_wage: number;
 }
@@ -32,13 +22,24 @@ interface WorkerRow {
 // Minggu=0, Senin=1, ..., Sabtu=6
 const HARI_PENDEK = ['M', 'S', 'S', 'R', 'K', 'J', 'S'];
 
+// Helper format YYYY-MM-DD tanpa masalah timezone offset UTC
+const toDateStr = (d: Date): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getTodayStr = (): string => toDateStr(new Date());
+
 const getMondayOfWeek = (dateStr: string): Date => {
-  const d = new Date(dateStr);
-  const day = d.getDay();
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.getDay();
   const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
 };
 
 const getWeekDates = (dateStr: string): Date[] => {
@@ -50,20 +51,21 @@ const getWeekDates = (dateStr: string): Date[] => {
   });
 };
 
-const toDateStr = (d: Date): string => d.toISOString().split('T')[0];
-
 // ─── Komponen sel hari ───────────────────────────────────────────────────────
-const DayCell = ({ status }: { status?: 'hadir' | 'lembur' | 'cor' | 'alpha' }) => {
+const DayCell = ({ status }: { status?: string }) => {
   let bg = 'transparent';
   let color = 'var(--text-main)';
   let content: React.ReactNode = '';
 
-  if (status === 'hadir' || status === 'lembur') {
+  const norm = status ? status.toLowerCase().trim() : '';
+
+  if (norm === 'hadir' || norm === 'lembur') {
     content = '✓';
-  } else if (status === 'alpha') {
+    color = '#15803d';
+  } else if (norm === 'alpha') {
     bg = '#ef4444';
     color = 'white';
-  } else if (status === 'cor') {
+  } else if (norm === 'cor') {
     bg = '#9ca3af';
     color = 'white';
   }
@@ -74,12 +76,12 @@ const DayCell = ({ status }: { status?: 'hadir' | 'lembur' | 'cor' | 'alpha' }) 
         backgroundColor: bg,
         color,
         textAlign: 'center',
-        fontWeight: 700,
-        fontSize: '15px',
+        fontWeight: 800,
+        fontSize: '16px',
         padding: '0',
         width: '44px',
         minWidth: '44px',
-        height: '52px',
+        height: '44px',
         verticalAlign: 'middle',
         borderBottom: '1px solid var(--border-color)',
         borderRight: '1px solid var(--border-color)',
@@ -96,10 +98,11 @@ const RekapAbsensi = () => {
 
   const [projects, setProjects]             = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<string>('');
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayStr();
   const [selectedWeek, setSelectedWeek]     = useState<string>(today);
   const [workerRows, setWorkerRows]         = useState<WorkerRow[]>([]);
   const [loading, setLoading]               = useState(false);
+  const [exporting, setExporting]           = useState(false);
   const [search, setSearch]                 = useState('');
 
   const weekDates = getWeekDates(selectedWeek);
@@ -126,28 +129,18 @@ const RekapAbsensi = () => {
       setLoading(true);
       try {
         const res = await fetchApi(
-          `/attendance/report?project_id=${selectedProject}&date_from=${dateFrom}&date_to=${dateTo}`,
+          `/attendance/report?project_id=${selectedProject}&week=${dateFrom}`,
           { token }
         );
-        const details: AttendanceDetail[] = res.data?.detail ?? [];
-        const map = new Map<number, WorkerRow>();
-
-        details.forEach((item) => {
-          if (!map.has(item.worker_id)) {
-            map.set(item.worker_id, {
-              worker_id:   item.worker_id,
-              worker_name: item.worker_name,
-              position:    item.position,
-              days:        {},
-              total_wage:  0,
-            });
-          }
-          const row = map.get(item.worker_id)!;
-          row.days[item.date] = item.status;
-          row.total_wage     += item.wage;
-        });
-
-        setWorkerRows(Array.from(map.values()));
+        const rawWorkers = res.data?.workers ?? [];
+        setWorkerRows(rawWorkers.map((item: any) => ({
+          worker_id:   item.worker_id ?? item.id,
+          worker_name: item.worker_name ?? item.name,
+          position:    item.position,
+          daily_wage:  item.daily_wage ?? 0,
+          days:        item.days ?? {},
+          total_wage:  item.total_wage ?? 0,
+        })));
       } catch (err) {
         console.error('Error fetching report:', err);
       } finally {
@@ -155,7 +148,24 @@ const RekapAbsensi = () => {
       }
     };
     loadReport();
-  }, [selectedProject, selectedWeek, token, dateFrom, dateTo]);
+  }, [selectedProject, selectedWeek, token, dateFrom]);
+
+  // ── Handler Export ────────────────────────────────────────────────────────
+  const handleExport = async () => {
+    if (!selectedProject) return;
+    setExporting(true);
+    try {
+      await downloadFileApi(
+        `/attendance/export?project_id=${selectedProject}&date_from=${dateFrom}&date_to=${dateTo}`,
+        token,
+        `rekap-absensi-${dateFrom}.xlsx`
+      );
+    } catch (err) {
+      console.error('Error exporting report:', err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const filteredRows = workerRows.filter(r =>
     r.worker_name.toLowerCase().includes(search.toLowerCase())
@@ -163,7 +173,7 @@ const RekapAbsensi = () => {
 
   const grandTotal   = filteredRows.reduce((s, r) => s + r.total_wage, 0);
   const totalPekerja = filteredRows.length;
-  // NO + NAMA + JABATAN + 7 hari + JML HARI + TOTAL UPAH
+  // NO + NAMA + JABATAN + UPAH/HARI + 7 hari + JML HARI + JUMLAH UPAH
   const totalCols = 13;
 
   return (
@@ -203,19 +213,23 @@ const RekapAbsensi = () => {
               style={{ paddingLeft: '40px' }}
             />
           </div>
-          <button className="btn-outline">
-            <Download size={16} />
-            <span>Export</span>
+          <button
+            className="btn-outline"
+            onClick={handleExport}
+            disabled={!selectedProject || exporting}
+            style={{ opacity: !selectedProject || exporting ? 0.6 : 1, cursor: !selectedProject || exporting ? 'not-allowed' : 'pointer' }}
+          >
+            {exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+            <span>{exporting ? 'Mengunduh...' : 'Export'}</span>
           </button>
         </div>
       </div>
 
-      {/* ── Card Ringkasan ───────────────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '24px' }}>
-
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 20px' }}>
+      {/* ── Card Ringkasan Compact ───────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px' }}>
           <div style={{
-            width: '42px', height: '42px', borderRadius: '10px', flexShrink: 0,
+            width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
             backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <Wallet size={20} color="#d97706" />
@@ -224,15 +238,15 @@ const RekapAbsensi = () => {
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>
               Total Upah Minggu Ini
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '2px', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '2px', whiteSpace: 'nowrap' }}>
               Rp {new Intl.NumberFormat('id-ID').format(grandTotal)}
             </div>
           </div>
         </div>
 
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 20px' }}>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px' }}>
           <div style={{
-            width: '42px', height: '42px', borderRadius: '10px', flexShrink: 0,
+            width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
             backgroundColor: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <Users size={20} color="#2563eb" />
@@ -241,7 +255,7 @@ const RekapAbsensi = () => {
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>
               Total Pekerja
             </div>
-            <div style={{ fontSize: '20px', fontWeight: 700, marginTop: '2px' }}>
+            <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '2px' }}>
               {totalPekerja}{' '}
               <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--text-muted)' }}>orang</span>
             </div>
@@ -249,21 +263,22 @@ const RekapAbsensi = () => {
         </div>
       </div>
 
-      {/* ── Tabel Rekap ─────────────────────────────────────────────────── */}
-      <div className="card" style={{ padding: '0' }}>
+      {/* ── Tabel Rekap Presisi ─────────────────────────────────────────── */}
+      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
         <div className="table-container">
           <table
             className="table"
             style={{
               borderCollapse: 'collapse',
               width: '100%',
-              minWidth: '812px',
+              minWidth: '920px',
             }}
           >
             <colgroup>
               <col style={{ width: '44px' }} />  {/* NO */}
-              <col style={{ width: '180px' }} /> {/* NAMA */}
-              <col style={{ width: '90px' }} />  {/* JABATAN */}
+              <col style={{ width: '180px' }} /> {/* NAMA PEKERJA */}
+              <col style={{ width: '100px' }} /> {/* JABATAN */}
+              <col style={{ width: '110px' }} /> {/* UPAH/HARI */}
               <col style={{ width: '44px' }} />  {/* S */}
               <col style={{ width: '44px' }} />  {/* S */}
               <col style={{ width: '44px' }} />  {/* R */}
@@ -272,40 +287,42 @@ const RekapAbsensi = () => {
               <col style={{ width: '44px' }} />  {/* S */}
               <col style={{ width: '44px' }} />  {/* M */}
               <col style={{ width: '70px' }} />  {/* JML HARI */}
-              <col style={{ width: '120px' }} /> {/* TOTAL UPAH */}
+              <col style={{ width: '130px' }} /> {/* JUMLAH UPAH */}
             </colgroup>
 
             <thead>
-              {/* Baris 1 */}
-              <tr>
-                <th rowSpan={2} style={{ textAlign: 'center', verticalAlign: 'middle' }}>NO</th>
-                <th rowSpan={2} style={{ verticalAlign: 'middle' }}>NAMA PEKERJA</th>
-                <th rowSpan={2} style={{ textAlign: 'center', verticalAlign: 'middle' }}>JABATAN</th>
+              <tr style={{ backgroundColor: '#f8fafc' }}>
+                <th rowSpan={2} style={{ textAlign: 'center', verticalAlign: 'middle', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '10px 4px' }}>NO</th>
+                <th rowSpan={2} style={{ textAlign: 'left', verticalAlign: 'middle', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '10px 12px' }}>NAMA PEKERJA</th>
+                <th rowSpan={2} style={{ textAlign: 'center', verticalAlign: 'middle', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '10px 8px' }}>JABATAN</th>
+                <th rowSpan={2} style={{ textAlign: 'right', verticalAlign: 'middle', borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '10px 12px' }}>UPAH/HARI</th>
                 <th
                   colSpan={7}
                   style={{
                     textAlign: 'center',
                     borderBottom: '1px solid var(--border-color)',
+                    borderRight: '1px solid var(--border-color)',
                     letterSpacing: '0.5px',
+                    padding: '8px 4px',
                   }}
                 >
                   HARI KERJA
                 </th>
-                <th rowSpan={2} style={{ textAlign: 'center', verticalAlign: 'middle', lineHeight: 1.3 }}>
+                <th rowSpan={2} style={{ textAlign: 'center', verticalAlign: 'middle', lineHeight: 1.2, borderRight: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '10px 4px' }}>
                   JML<br />HARI
                 </th>
-                <th rowSpan={2} style={{ textAlign: 'right', verticalAlign: 'middle' }}>TOTAL UPAH</th>
+                <th rowSpan={2} style={{ textAlign: 'right', verticalAlign: 'middle', borderBottom: '1px solid var(--border-color)', padding: '10px 12px' }}>JUMLAH UPAH</th>
               </tr>
-              {/* Baris 2: nama hari + tanggal */}
-              <tr>
+              <tr style={{ backgroundColor: '#f8fafc' }}>
                 {weekDates.map((d, i) => (
                   <th
                     key={i}
                     style={{
                       textAlign: 'center',
                       padding: '6px 2px',
-                      lineHeight: 1.4,
-                      borderRight: i < 6 ? '1px solid var(--border-color)' : undefined,
+                      lineHeight: 1.3,
+                      borderRight: '1px solid var(--border-color)',
+                      borderBottom: '1px solid var(--border-color)',
                     }}
                   >
                     <div style={{ fontSize: '12px', fontWeight: 700 }}>
@@ -335,7 +352,7 @@ const RekapAbsensi = () => {
               ) : filteredRows.length === 0 ? (
                 <tr>
                   <td colSpan={totalCols} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-muted)' }}>
-                    Tidak ada rekap absensi untuk minggu ini.
+                    Tidak ada data pekerja / rekap absensi untuk minggu ini.
                   </td>
                 </tr>
               ) : (
@@ -346,25 +363,27 @@ const RekapAbsensi = () => {
                   }, 0);
 
                   return (
-                    <tr key={row.worker_id}>
+                    <tr key={row.worker_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                       {/* NO */}
-                      <td style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                      <td style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', borderRight: '1px solid var(--border-color)', padding: '8px 4px' }}>
                         {idx + 1}
                       </td>
 
                       {/* NAMA */}
-                      <td>
+                      <td style={{ borderRight: '1px solid var(--border-color)', padding: '8px 12px' }}>
                         <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-main)' }}>
                           {row.worker_name}
-                        </div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          {row.position}
                         </div>
                       </td>
 
                       {/* JABATAN */}
-                      <td style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
+                      <td style={{ textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', borderRight: '1px solid var(--border-color)', padding: '8px 8px' }}>
                         {row.position}
+                      </td>
+
+                      {/* UPAH/HARI */}
+                      <td style={{ textAlign: 'right', fontWeight: 600, fontSize: '13px', borderRight: '1px solid var(--border-color)', padding: '8px 12px' }}>
+                        {row.daily_wage ? new Intl.NumberFormat('id-ID').format(row.daily_wage) : '-'}
                       </td>
 
                       {/* Sel hari — pakai komponen DayCell */}
@@ -373,32 +392,17 @@ const RekapAbsensi = () => {
                       ))}
 
                       {/* JML HARI */}
-                      <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '15px' }}>
+                      <td style={{ textAlign: 'center', fontWeight: 700, fontSize: '15px', borderRight: '1px solid var(--border-color)', padding: '8px 4px' }}>
                         {jmlHari}
                       </td>
 
                       {/* TOTAL UPAH */}
-                      <td style={{ textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap', fontSize: '13px' }}>
+                      <td style={{ textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap', fontSize: '14px', padding: '8px 12px' }}>
                         {new Intl.NumberFormat('id-ID').format(row.total_wage)}
                       </td>
                     </tr>
                   );
                 })
-              )}
-
-              {/* Baris TOTAL */}
-              {filteredRows.length > 0 && !loading && (
-                <tr style={{ backgroundColor: '#fafaf8', borderTop: '2px solid var(--border-color)' }}>
-                  <td
-                    colSpan={totalCols - 1}
-                    style={{ textAlign: 'right', fontWeight: 700, fontSize: '14px', padding: '14px 16px' }}
-                  >
-                    TOTAL:
-                  </td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '14px', padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                    {new Intl.NumberFormat('id-ID').format(grandTotal)}
-                  </td>
-                </tr>
               )}
             </tbody>
           </table>
