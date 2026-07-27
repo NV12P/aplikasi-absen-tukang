@@ -257,7 +257,6 @@ const RekapAbsensi = () => {
             </div>
             <div style={{ fontSize: '18px', fontWeight: 700, marginTop: '2px' }}>
               {totalPekerja}{' '}
-              <span style={{ fontSize: '13px', fontWeight: 400, color: 'var(--text-muted)' }}>orang</span>
             </div>
           </div>
         </div>
