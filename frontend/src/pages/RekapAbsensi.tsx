@@ -30,6 +30,9 @@ const toDateStr = (d: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+
+
+
 const getTodayStr = (): string => toDateStr(new Date());
 
 const getMondayOfWeek = (dateStr: string): Date => {
@@ -92,6 +95,8 @@ const DayCell = ({ status }: { status?: string }) => {
   );
 };
 
+
+
 const RekapAbsensi = () => {
   const { token, logout } = useAuth();
   const navigate = useNavigate();
@@ -107,7 +112,6 @@ const RekapAbsensi = () => {
 
   const weekDates = getWeekDates(selectedWeek);
   const dateFrom  = toDateStr(weekDates[0]);
-  const dateTo    = toDateStr(weekDates[6]);
 
   // ── Load daftar proyek ────────────────────────────────────────────────────
   useEffect(() => {
@@ -156,10 +160,10 @@ const RekapAbsensi = () => {
     setExporting(true);
     try {
       await downloadFileApi(
-        `/attendance/export?project_id=${selectedProject}&date_from=${dateFrom}&date_to=${dateTo}`,
-        token,
-        `rekap-absensi-${dateFrom}.xlsx`
-      );
+  `/reports/export?project_id=${selectedProject}&date=${selectedWeek}`,
+  token,
+  `rekap-absensi-${selectedWeek}.xlsx`
+);
     } catch (err) {
       console.error('Error exporting report:', err);
     } finally {
@@ -199,7 +203,40 @@ const RekapAbsensi = () => {
             onChange={(e) => setSelectedWeek(e.target.value)}
             style={{ minWidth: '150px' }}
           />
-        </div>
+        </div> 
+
+        <div
+    style={{
+        marginTop:16,
+        background:"#f8fafc",
+        border:"1px solid #e5e7eb",
+        borderRadius:10,
+        padding:"14px"
+    }}
+>
+
+    <div
+        style={{
+            fontSize:13,
+            color:"#64748b",
+            marginBottom:4
+        }}
+    >
+        Periode Minggu
+    </div>
+
+    <div
+        style={{
+            fontWeight:600,
+            fontSize:15
+        }}
+    >
+        {weekDates[0].toLocaleDateString("id-ID")}
+        {" - "}
+        {weekDates[6].toLocaleDateString("id-ID")}
+    </div>
+
+</div>
 
         <div className="page-toolbar-right">
           <div className="input-group" style={{ width: '220px' }}>
