@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ExportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Position\PositionController;
 use App\Http\Controllers\Project\ProjectController;
@@ -11,6 +12,8 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Dashboard\DashboardController;
+
+Route::get('/reports/export', [ExportController::class, 'attendance']);
 
 Route::get('/attendance/report', [AttendanceReportController::class, 'index']);
 
@@ -36,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/today', [AttendanceController::class, 'today']);
         Route::get('/report', [AttendanceReportController::class, 'index']);
         Route::get('/export', AttendanceExportController::class);
+        
     });
 
     // CRUD Resources
