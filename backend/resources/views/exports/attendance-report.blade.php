@@ -23,14 +23,14 @@
 
     {{-- ======================== INFORMASI ======================== --}}
     <tr>
-        <td colspan="2" style="font-weight:bold;background:#EAF3F9;">Proyek</td>
+        <td colspan="2" style="font-weight:bold;background:#EAF3F9;">Proyek :</td>
         <td colspan="10" style="background:#EAF3F9;">
             {{ $project->name }}
         </td>
     </tr>
 
     <tr>
-        <td colspan="2" style="font-weight:bold;background:#EAF3F9;">Periode</td>
+        <td colspan="2" style="font-weight:bold;background:#EAF3F9;">Periode :</td>
         <td colspan="10" style="background:#EAF3F9;">
             {{ $week['start']->translatedFormat('d F Y') }}
             -
