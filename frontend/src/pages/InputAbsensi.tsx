@@ -13,7 +13,10 @@ interface Project {
 interface Worker {
   id: number;
   name: string;
-  position: { name: string };
+  position: {
+    name: string;
+  };
+  already_attended: boolean;
 }
 
 interface AttendanceState {
@@ -59,7 +62,12 @@ const InputAbsensi = () => {
       }
       setLoading(true);
       try {
-        const response = await fetchApi(`/attendance/project/${selectedProject}`, { token });
+        const today = new Date().toISOString().split("T")[0];
+
+const response = await fetchApi(
+  `/attendance/project/${selectedProject}?date=${today}`,
+  { token }
+);
         setWorkers(response.data);
         const initialState: AttendanceState = {};
         response.data.forEach((w: Worker) => {
@@ -94,11 +102,13 @@ const InputAbsensi = () => {
       const payload = {
         project_id: parseInt(selectedProject),
         date: today,
-        attendances: workers.map(worker => ({
-          worker_id: worker.id,
-          status: attendance[worker.id]?.status || 'hadir',
-          note: attendance[worker.id]?.note || ''
-        }))
+        attendances: workers
+    .filter(worker => !worker.already_attended)
+    .map(worker => ({
+        worker_id: worker.id,
+        status: attendance[worker.id]?.status || "hadir",
+        note: attendance[worker.id]?.note || ""
+    }))
       };
       await fetchApi('/attendance/store', { method: 'POST', token, body: JSON.stringify(payload) });
       toast.success('Data absensi berhasil disimpan!');
@@ -168,7 +178,30 @@ const InputAbsensi = () => {
                 workers.map(worker => (
                   <tr key={worker.id}>
                     <td>
-                      <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-main)' }}>{worker.name}</div>
+                      <div
+    style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontWeight: 600
+    }}
+>
+    {worker.name}
+
+    {worker.already_attended && (
+        <span
+            style={{
+                background: "#22c55e",
+                color: "white",
+                fontSize: "11px",
+                padding: "2px 8px",
+                borderRadius: "999px"
+            }}
+        >
+            Sudah Diabsen
+        </span>
+    )}
+</div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                         {worker.position?.name || '-'}
                       </div>
@@ -184,6 +217,7 @@ const InputAbsensi = () => {
                           >
                             <input
                               type="radio"
+                              disabled={worker.already_attended}
                               name={`status-${worker.id}`}
                               checked={attendance[worker.id]?.status === status}
                               onChange={() => handleStatusChange(worker.id, status)}
@@ -196,6 +230,7 @@ const InputAbsensi = () => {
                     <td>
                       <input
                         type="text"
+                        disabled={worker.already_attended}
                         placeholder="Tambahkan catatan..."
                         className="input-field"
                         value={attendance[worker.id]?.note || ''}

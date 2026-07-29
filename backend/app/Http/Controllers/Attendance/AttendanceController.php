@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Attendance;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Attendance\StoreAttendanceRequest;
 use App\Services\AttendanceService;
+use Illuminate\Http\Request;
+use App\Models\Project;
+use App\Models\Worker;
+
 
 class AttendanceController extends Controller
 {
@@ -15,13 +19,27 @@ class AttendanceController extends Controller
     /**
      * Daftar pekerja berdasarkan proyek
      */
-    public function projectWorkers(int $projectId)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $this->service->projectWorkers($projectId)
-        ]);
-    }
+    
+
+public function projectWorkers(Request $request, Project $project)
+{
+    $date = $request->date ?? now()->toDateString();
+
+    $workers = Worker::with('position')
+        ->where('project_id', $project->id)
+        ->get();
+
+    $workers->each(function ($worker) use ($date) {
+        $worker->already_attended = $worker->attendances()
+            ->whereDate('date', $date)
+            ->exists();
+    });
+
+    return response()->json([
+        'success' => true,
+        'data' => $workers
+    ]);
+}
 
     /**
      * Simpan absensi
