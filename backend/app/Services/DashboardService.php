@@ -29,13 +29,23 @@ class DashboardService
         $todayWage = $todayAttendances->sum('wage');
 
         // Rekap status absensi hari ini
-        $todayRecap = [
-            'hadir'  => $todayAttendances->where('status', 'hadir')->count(),
-            'lembur' => $todayAttendances->where('status', 'lembur')->count(),
-            'cor'    => $todayAttendances->where('status', 'cor')->count(),
-            'alpha'  => $todayAttendances->where('status', 'alpha')->count(),
-            'total'  => $todayAttendances->count(),
-        ];
+       $hadir = $todayAttendances->where('status', 'hadir')->count();
+$lembur = $todayAttendances->where('status', 'lembur')->count();
+$cor = $todayAttendances->where('status', 'cor')->count();
+$alpha = $todayAttendances->where('status', 'alpha')->count();
+
+$todayRecap = [
+    'hadir'        => $hadir,
+    'lembur'       => $lembur,
+    'cor'          => $cor,
+    'alpha'        => $alpha,
+
+    // Total pekerja yang masuk
+    'present'      => $hadir + $lembur + $cor,
+
+    // Total seluruh absensi
+    'total'        => $todayAttendances->count(),
+];
 
         // Total upah bulan ini
         $monthWage = Attendance::whereYear('date', $today->year)

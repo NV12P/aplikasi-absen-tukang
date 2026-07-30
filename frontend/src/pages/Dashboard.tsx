@@ -12,12 +12,13 @@ interface DashboardStats {
   };
   today: {
     attendance: {
-      hadir: number;
-      lembur: number;
-      cor: number;
-      alpha: number;
-      total: number;
-    };
+  hadir: number;
+  lembur: number;
+  cor: number;
+  alpha: number;
+  present: number;
+  total: number;
+};
     total_wage: number;
   };
 }
@@ -109,8 +110,13 @@ const Dashboard = () => {
             <CheckSquare size={20} />
           </div>
           <div>
-            <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>Hadir Hari Ini</div>
-            <div style={{ fontSize: '28px', fontWeight: 700, marginTop: '4px' }}>{stats.today.attendance.hadir}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
+  Hadir Hari Ini
+</div>
+
+<div style={{ fontSize: '28px', fontWeight: 700, marginTop: '4px' }}>
+  {stats.today.attendance.present}
+</div>
           </div>
         </div>
 
