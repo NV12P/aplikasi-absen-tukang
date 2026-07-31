@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { NotificationProvider } from './context/NotificationContext'
-import Layout from './components/Layout'
+import MainLayout from './components/layout/MainLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
 import Proyek from './pages/Proyek'
@@ -19,7 +19,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Layout />}>
+              <Route path="/" element={<MainLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="proyek" element={<Proyek />} />
                 <Route path="pekerja" element={<Pekerja />} />
