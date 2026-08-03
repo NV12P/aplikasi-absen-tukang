@@ -339,6 +339,8 @@ ul {
 
 .top-header {
   height: 64px;
+  min-height: 64px;
+  flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
@@ -356,6 +358,7 @@ ul {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex: 1;
 }
 
 /* Tombol hamburger — disembunyikan di desktop */
@@ -381,6 +384,7 @@ ul {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .header-right {
@@ -394,6 +398,7 @@ ul {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .user-name {
@@ -403,8 +408,8 @@ ul {
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background-color: #ddd;
   object-fit: cover;
@@ -639,7 +644,7 @@ ul {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   RESPONSIVE — Tablet (≤ 1024px)
+   RESPONSIVE — Tablet & Mobile
 ───────────────────────────────────────────────────────────────────────────── */
 
 @media (max-width: 1024px) {
@@ -657,42 +662,35 @@ ul {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   RESPONSIVE — Mobile (≤ 768px)
-───────────────────────────────────────────────────────────────────────────── */
-
 @media (max-width: 768px) {
-
-  /* Tampilkan overlay */
+  /* Overlay */
   .sidebar-overlay {
     display: block;
   }
 
-  /* Sidebar jadi fixed, slide dari kiri */
+  /* Sidebar */
   .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 290px;
-    max-width: 84vw;
+    width: 280px;
+    max-width: 85vw;
     height: 100vh;
+    height: 100dvh;
     transform: translateX(-100%);
     box-shadow: 12px 0 35px rgba(0, 0, 0, 0.22);
     border-radius: 0 18px 18px 0;
   }
 
-  /* Saat terbuka */
   .sidebar.sidebar--open {
     transform: translateX(0);
   }
 
-  /* Tampilkan tombol close di sidebar */
   .sidebar-close-btn {
     display: flex;
   }
 
-  /* Tampilkan tombol hamburger di header */
   .hamburger-btn {
     display: flex;
   }
@@ -701,90 +699,97 @@ ul {
   .top-header {
     padding: 0 16px;
     height: 56px;
+    min-height: 56px;
+    flex-shrink: 0;
   }
 
   .page-title {
     font-size: 15px;
   }
 
-  /* Sembunyikan nama user di layar sangat kecil, tampilkan avatar saja */
   .user-name {
     display: none;
   }
 
-  /* Page container */
+  /* Page container & cards */
   .page-container {
-    padding: 16px;
+    padding: 16px 12px;
   }
 
-  /* Card */
   .card {
     padding: 16px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
-  /* Stats grid jadi 2 kolom di mobile */
+  /* Stats Grid (2 kolom x 2 baris di mobile) */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 20px;
   }
 
-  /* Page toolbar stack vertikal */
+  /* Page Toolbar Stack */
   .page-toolbar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .page-toolbar-left,
   .page-toolbar-right {
     width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
-  /* Table lebih compact */
+  /* Table horizontal scroll container */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    border-radius: 8px;
+  }
+
   .table th,
   .table td {
     padding: 12px 10px;
     font-size: 13px;
   }
 
-  /* Tombol aksi di dalam tabel */
   .table td button {
     padding: 6px;
   }
 
-  /* Radio group absensi lebih kecil */
+  /* Radio group */
+  .radio-group {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
   .radio-label {
-    padding: 6px 10px;
+    padding: 6px 12px;
     font-size: 12px;
+    flex-shrink: 0;
   }
 
-  /* Input field padding normal (tanpa icon default) */
-  .input-field {
-    font-size: 16px; /* mencegah zoom otomatis iOS */
-  }
-
-  select,
+  /* Form Elements */
+  .input-field,
   .select-field {
-    font-size: 16px; /* mencegah zoom otomatis iOS */
+    font-size: 15px; /* Prevent iOS auto-zoom */
   }
 
-  /* Btn primary full width di mobile jika perlu */
-  .btn-primary-block {
-    width: 100%;
+  .btn-primary,
+  .btn-outline,
+  .btn-secondary {
     justify-content: center;
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
-   RESPONSIVE — Mobile kecil (≤ 480px)
-───────────────────────────────────────────────────────────────────────────── */
-
 @media (max-width: 480px) {
-  /* Stats grid jadi 1 kolom di layar sangat sempit */
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
   .page-title {
@@ -792,10 +797,29 @@ ul {
   }
 
   .page-container {
-    padding: 12px;
+    padding: 14px 10px;
+  }
+
+  .card {
+    padding: 14px;
   }
 }
 
+/* ─── Rekap Summary Grid Class ────────────────────────────────────────────────── */
+
+.rekap-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 640px) {
+  .rekap-summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
 
 /* ─── Attendance Progress Bar ────────────────────────────────────────────────── */
 
@@ -830,3 +854,6 @@ ul {
     width: 40px;
   }
 }
+
+
+

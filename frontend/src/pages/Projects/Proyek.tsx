@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Edit2, Trash2, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
-import { CustomSelect } from '../components/ui/CustomSelect';
-import { fetchApi } from '../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
+import { CustomSelect } from '../../components/ui/CustomSelect';
+import { fetchApi } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 interface Project {
@@ -139,7 +139,7 @@ const Proyek = () => {
       {/* Toolbar */}
       <div className="page-toolbar">
         <div className="page-toolbar-left">
-          <div style={{ display: 'flex', gap: '32px' }}>
+          <div style={{ display: 'flex', gap: '20px' }}>
             <div>
               <div style={{ fontSize: '24px', fontWeight: 700 }}>{activeCount}</div>
               <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Proyek Aktif</div>
@@ -159,7 +159,7 @@ const Proyek = () => {
 
       <div className="card" style={{ padding: '0' }}>
         <div className="table-container">
-          <table className="table">
+          <table className="table" style={{ minWidth: '550px' }}>
             <thead>
               <tr>
                 <th>Nama Proyek</th>

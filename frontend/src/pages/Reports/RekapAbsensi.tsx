@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Download, Search, Wallet, Users, Loader2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { fetchApi, downloadFileApi } from '../utils/api';
-import { CustomSelect } from '../components/ui/CustomSelect';
+import { useAuth } from '../../context/AuthContext';
+import { fetchApi, downloadFileApi } from '../../utils/api';
+import { CustomSelect } from '../../components/ui/CustomSelect';
 import { useNavigate } from 'react-router-dom';
 
 interface Project {
@@ -29,9 +29,6 @@ const toDateStr = (d: Date): string => {
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
-
-
-
 
 const getTodayStr = (): string => toDateStr(new Date());
 
@@ -94,8 +91,6 @@ const DayCell = ({ status }: { status?: string }) => {
     </td>
   );
 };
-
-
 
 const RekapAbsensi = () => {
   const { token, logout } = useAuth();
@@ -160,10 +155,10 @@ const RekapAbsensi = () => {
     setExporting(true);
     try {
       await downloadFileApi(
-  `/reports/export?project_id=${selectedProject}&date=${selectedWeek}`,
-  token,
-  `rekap-absensi-${selectedWeek}.xlsx`
-);
+        `/reports/export?project_id=${selectedProject}&date=${selectedWeek}`,
+        token,
+        `rekap-absensi-${selectedWeek}.xlsx`
+      );
     } catch (err) {
       console.error('Error exporting report:', err);
     } finally {
@@ -206,40 +201,37 @@ const RekapAbsensi = () => {
         </div> 
 
         <div
-    style={{
-        marginTop:16,
-        background:"#f8fafc",
-        border:"1px solid #e5e7eb",
-        borderRadius:10,
-        padding:"14px"
-    }}
->
+          style={{
+            background: "#f8fafc",
+            border: "1px solid #e5e7eb",
+            borderRadius: 10,
+            padding: "10px 14px"
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              color: "#64748b",
+              marginBottom: 2
+            }}
+          >
+            Periode Minggu
+          </div>
 
-    <div
-        style={{
-            fontSize:13,
-            color:"#64748b",
-            marginBottom:4
-        }}
-    >
-        Periode Minggu
-    </div>
-
-    <div
-        style={{
-            fontWeight:600,
-            fontSize:15
-        }}
-    >
-        {weekDates[0].toLocaleDateString("id-ID")}
-        {" - "}
-        {weekDates[6].toLocaleDateString("id-ID")}
-    </div>
-
-</div>
+          <div
+            style={{
+              fontWeight: 600,
+              fontSize: 14
+            }}
+          >
+            {weekDates[0].toLocaleDateString("id-ID")}
+            {" - "}
+            {weekDates[6].toLocaleDateString("id-ID")}
+          </div>
+        </div>
 
         <div className="page-toolbar-right">
-          <div className="input-group" style={{ width: '220px' }}>
+          <div className="input-group">
             <Search className="input-icon" size={18} />
             <input
               type="text"
@@ -263,7 +255,7 @@ const RekapAbsensi = () => {
       </div>
 
       {/* ── Card Ringkasan Compact ───────────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
+      <div className="rekap-summary-grid">
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px' }}>
           <div style={{
             width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
-import { CustomSelect } from '../components/ui/CustomSelect';
-import { fetchApi } from '../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
+import { CustomSelect } from '../../components/ui/CustomSelect';
+import { fetchApi } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 interface Project {
@@ -187,7 +187,7 @@ const Pekerja = () => {
 
       <div className="card" style={{ padding: '0' }}>
         <div className="table-container">
-          <table className="table">
+          <table className="table" style={{ minWidth: '600px' }}>
             <thead>
               <tr>
                 <th>Nama Pekerja</th>

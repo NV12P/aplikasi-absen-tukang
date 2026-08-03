@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
-import { CustomSelect } from '../components/ui/CustomSelect';
-import { fetchApi } from '../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
+import { CustomSelect } from '../../components/ui/CustomSelect';
+import { fetchApi } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 
 interface Project {
@@ -64,10 +64,10 @@ const InputAbsensi = () => {
       try {
         const today = new Date().toISOString().split("T")[0];
 
-const response = await fetchApi(
-  `/attendance/project/${selectedProject}?date=${today}`,
-  { token }
-);
+        const response = await fetchApi(
+          `/attendance/project/${selectedProject}?date=${today}`,
+          { token }
+        );
         setWorkers(response.data);
         const initialState: AttendanceState = {};
         response.data.forEach((w: Worker) => {
@@ -103,12 +103,12 @@ const response = await fetchApi(
         project_id: parseInt(selectedProject),
         date: today,
         attendances: workers
-    .filter(worker => !worker.already_attended)
-    .map(worker => ({
-        worker_id: worker.id,
-        status: attendance[worker.id]?.status || "hadir",
-        note: attendance[worker.id]?.note || ""
-    }))
+          .filter(worker => !worker.already_attended)
+          .map(worker => ({
+            worker_id: worker.id,
+            status: attendance[worker.id]?.status || "hadir",
+            note: attendance[worker.id]?.note || ""
+          }))
       };
       await fetchApi('/attendance/store', { method: 'POST', token, body: JSON.stringify(payload) });
       toast.success('Data absensi berhasil disimpan!');
@@ -149,7 +149,7 @@ const response = await fetchApi(
 
       <div className="card" style={{ padding: '0' }}>
         <div className="table-container">
-          <table className="table">
+          <table className="table" style={{ minWidth: '640px' }}>
             <thead>
               <tr>
                 <th style={{ width: '25%' }}>Nama Pekerja</th>
@@ -179,29 +179,29 @@ const response = await fetchApi(
                   <tr key={worker.id}>
                     <td>
                       <div
-    style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        fontWeight: 600
-    }}
->
-    {worker.name}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontWeight: 600
+                        }}
+                      >
+                        {worker.name}
 
-    {worker.already_attended && (
-        <span
-            style={{
-                background: "#22c55e",
-                color: "white",
-                fontSize: "11px",
-                padding: "2px 8px",
-                borderRadius: "999px"
-            }}
-        >
-            Sudah Diabsen
-        </span>
-    )}
-</div>
+                        {worker.already_attended && (
+                          <span
+                            style={{
+                              background: "#22c55e",
+                              color: "white",
+                              fontSize: "11px",
+                              padding: "2px 8px",
+                              borderRadius: "999px"
+                            }}
+                          >
+                            Sudah Diabsen
+                          </span>
+                        )}
+                      </div>
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                         {worker.position?.name || '-'}
                       </div>
