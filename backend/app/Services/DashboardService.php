@@ -47,15 +47,16 @@ $todayRecap = [
     'total'        => $todayAttendances->count(),
 ];
 
-        // Total upah bulan ini
-        $monthWage = Attendance::whereYear('date', $today->year)
-            ->whereMonth('date', $today->month)
+        // Total upah bulan ini (menggunakan query range berindeks)
+        $startOfMonth = $today->copy()->startOfMonth()->toDateString();
+        $endOfMonth   = $today->copy()->endOfMonth()->toDateString();
+
+        $monthWage = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])
             ->sum('wage');
 
         // 5 pekerja dengan upah terbanyak bulan ini
         $topWorkers = Attendance::with('worker')
-            ->whereYear('date', $today->year)
-            ->whereMonth('date', $today->month)
+            ->whereBetween('date', [$startOfMonth, $endOfMonth])
             ->selectRaw('worker_id, SUM(wage) as total_wage, COUNT(*) as total_hari')
             ->groupBy('worker_id')
             ->orderByDesc('total_wage')

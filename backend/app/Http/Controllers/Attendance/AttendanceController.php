@@ -8,7 +8,7 @@ use App\Services\AttendanceService;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\Worker;
-
+use App\Models\Attendance;
 
 class AttendanceController extends Controller
 {
@@ -17,29 +17,32 @@ class AttendanceController extends Controller
     ) {}
 
     /**
-     * Daftar pekerja berdasarkan proyek
+     * Daftar pekerja berdasarkan proyek (Optimized - No N+1 queries)
      */
-    
+    public function projectWorkers(Request $request, Project $project)
+    {
+        $date = $request->date ?? now()->toDateString();
 
-public function projectWorkers(Request $request, Project $project)
-{
-    $date = $request->date ?? now()->toDateString();
+        $attendedWorkerIds = Attendance::whereDate('date', $date)
+            ->whereIn('worker_id', function ($query) use ($project) {
+                $query->select('id')->from('workers')->where('project_id', $project->id);
+            })
+            ->pluck('worker_id')
+            ->flip();
 
-    $workers = Worker::with('position')
-        ->where('project_id', $project->id)
-        ->get();
+        $workers = Worker::with('position')
+            ->where('project_id', $project->id)
+            ->get();
 
-    $workers->each(function ($worker) use ($date) {
-        $worker->already_attended = $worker->attendances()
-            ->whereDate('date', $date)
-            ->exists();
-    });
+        $workers->each(function ($worker) use ($attendedWorkerIds) {
+            $worker->already_attended = isset($attendedWorkerIds[$worker->id]);
+        });
 
-    return response()->json([
-        'success' => true,
-        'data' => $workers
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'data' => $workers
+        ]);
+    }
 
     /**
      * Simpan absensi

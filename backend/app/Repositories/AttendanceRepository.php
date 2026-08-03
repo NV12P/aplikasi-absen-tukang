@@ -31,16 +31,13 @@ class AttendanceRepository
 
 public function report(int $projectId, string $start, string $end)
 {
-    return Attendance::with([
-        'worker.position',
-        'worker.project'
-    ])
-    ->whereHas('worker', function ($query) use ($projectId) {
-        $query->where('project_id', $projectId);
-    })
-    ->whereBetween('date', [$start, $end])
-    ->orderBy('date')
-    ->get();
+    return Attendance::select(['id', 'worker_id', 'date', 'status', 'wage'])
+        ->whereHas('worker', function ($query) use ($projectId) {
+            $query->where('project_id', $projectId);
+        })
+        ->whereBetween('date', [$start, $end])
+        ->orderBy('date')
+        ->get();
 }
 
     
