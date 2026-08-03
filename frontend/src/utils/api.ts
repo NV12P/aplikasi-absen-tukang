@@ -4,10 +4,41 @@ const API_BASE_URL = 'http://localhost:8000/api';
 
 interface FetchOptions extends RequestInit {
   token?: string | null;
+  bypassCache?: boolean;
 }
 
+// In-memory cache & deduplication for GET requests
+const apiCache = new Map<string, { data: any; timestamp: number }>();
+const pendingRequests = new Map<string, Promise<any>>();
+const CACHE_TTL_MS = 3000; // 3 seconds cache for instant tab/page switching
+
+export const clearApiCache = () => {
+  apiCache.clear();
+};
+
 export const fetchApi = async (endpoint: string, options: FetchOptions = {}) => {
-  const { token, headers, ...restOptions } = options;
+  const { token, headers, bypassCache = false, method = 'GET', ...restOptions } = options;
+
+  const isGetMethod = !method || method.toUpperCase() === 'GET';
+  const cacheKey = `${token || 'public'}:${endpoint}`;
+
+  // Invalidate cache on write operations (POST, PUT, DELETE)
+  if (!isGetMethod) {
+    clearApiCache();
+  }
+
+  // Check cache for GET requests
+  if (isGetMethod && !bypassCache) {
+    const cached = apiCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    // Deduplicate in-flight requests
+    if (pendingRequests.has(cacheKey)) {
+      return pendingRequests.get(cacheKey);
+    }
+  }
 
   const defaultHeaders: HeadersInit = {
     'Content-Type': 'application/json',
@@ -18,27 +49,44 @@ export const fetchApi = async (endpoint: string, options: FetchOptions = {}) => 
     defaultHeaders['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      ...defaultHeaders,
-      ...headers,
-    },
-    ...restOptions,
-  });
+  const fetchPromise = (async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        method,
+        headers: {
+          ...defaultHeaders,
+          ...headers,
+        },
+        ...restOptions,
+      });
 
-  if (response.status === 401) {
-    // Optionally trigger a global logout event here if needed, 
-    // but usually the components handle 401 by redirecting or context handles it.
-    throw new Error('Unauthorized');
+      if (response.status === 401) {
+        throw new Error('Unauthorized');
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'API request failed');
+      }
+
+      if (isGetMethod && !bypassCache) {
+        apiCache.set(cacheKey, { data, timestamp: Date.now() });
+      }
+
+      return data;
+    } finally {
+      if (isGetMethod) {
+        pendingRequests.delete(cacheKey);
+      }
+    }
+  })();
+
+  if (isGetMethod && !bypassCache) {
+    pendingRequests.set(cacheKey, fetchPromise);
   }
 
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.message || 'API request failed');
-  }
-
-  return data;
+  return fetchPromise;
 };
 
 export const downloadFileApi = async (endpoint: string, token?: string | null, defaultFilename = 'download.xlsx') => {
