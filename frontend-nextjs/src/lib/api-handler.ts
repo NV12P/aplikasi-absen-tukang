@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyFn = (...args: any[]) => Promise<NextResponse>;
+
 /**
  * Global try/catch wrapper untuk semua API route handlers.
- * Menangani dua jenis error:
- * 1. Error umum — return 500 dengan pesan generik
- * 2. Neon cold start (E57P01 / P1017) — return 503 dengan instruksi retry
  */
-export function apiHandler(
-  fn: (...args: Parameters<typeof fn>) => Promise<NextResponse>
-) {
-  return async (...args: Parameters<typeof fn>): Promise<NextResponse> => {
+export function apiHandler<T extends AnyFn>(fn: T): T {
+  return (async (...args: Parameters<T>): Promise<NextResponse> => {
     try {
       return await fn(...args);
     } catch (err) {
       console.error("[API Error]", err);
 
-      // Deteksi Neon cold start / connection terminated
       const isNeonColdStart =
         err instanceof Error &&
         (err.message.includes("E57P01") ||
@@ -25,10 +22,7 @@ export function apiHandler(
 
       if (isNeonColdStart) {
         return NextResponse.json(
-          {
-            error: "Database sedang membangun koneksi. Coba lagi dalam beberapa detik.",
-            retryable: true,
-          },
+          { error: "Database sedang membangun koneksi. Coba lagi dalam beberapa detik.", retryable: true },
           { status: 503 }
         );
       }
@@ -40,5 +34,5 @@ export function apiHandler(
 
       return NextResponse.json({ error: message }, { status: 500 });
     }
-  };
+  }) as T;
 }

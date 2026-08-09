@@ -53,10 +53,10 @@ export default async function DashboardPage() {
       {/* Absensi hari ini */}
       <div>
         <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Absensi Hari Ini</p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           {attendanceCards.map((card) => (
             <div key={card.label}
-              className={`card flex items-center gap-4 ring-1 ${card.ring} border-transparent`}>
+              className={`card flex items-center gap-3 sm:gap-4 ring-1 ${card.ring} border-transparent p-4 sm:p-6`}>
               <div className={`w-11 h-11 rounded-xl ${card.bg} ring-1 ${card.ring}
                               flex items-center justify-center flex-shrink-0`}>
                 <span className={`text-lg font-bold ${card.iconColor}`}>{card.icon}</span>
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Total pengeluaran — amber hero card */}
-      <div className="rounded-2xl bg-amber-gradient p-6 flex items-center justify-between shadow-card-md glow-amber">
+      <div className="rounded-2xl bg-amber-gradient p-4 sm:p-6 flex items-center justify-between shadow-card-md glow-amber">
         <div>
           <p className="text-amber-100 text-sm font-medium">Total Pengeluaran Hari Ini</p>
           <p className="text-3xl font-bold text-white mt-1">{formatRupiah(stats.total_expense)}</p>
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
       {/* Summary */}
       <div>
         <p className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Ringkasan</p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           {[
             { label: "Total Proyek",  value: totalProjects,  sub: `${activeProjects} aktif` },
             { label: "Total Pekerja", value: totalWorkers,   sub: `${activeWorkers} aktif` },

@@ -151,7 +151,7 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
 
       {report && !loading && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             {[
               { label: "Proyek", value: report.summary.project },
               { label: "Periode", value: report.summary.period },
@@ -166,8 +166,15 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           </div>
 
           <div className="card p-0 overflow-hidden">
-            <div className="table-container">
-              <table className="table-base" aria-label="Rekap absensi mingguan">
+            {/* Hint scroll di mobile */}
+            <div className="sm:hidden px-4 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-1.5">
+              <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              </svg>
+              <span className="text-xs text-amber-600 font-medium">Geser ke kanan untuk lihat semua hari</span>
+            </div>
+            <div className="table-container overflow-x-auto">
+              <table className="table-base min-w-[640px]" aria-label="Rekap absensi mingguan">
                 <thead className="table-head">
                   <tr>
                     <th className="table-th sticky left-0 bg-gray-50 z-10">Pekerja</th>
@@ -216,7 +223,7 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 </tbody>
                 <tfoot>
                   <tr className="bg-gray-50 border-t-2 border-gray-200">
-                    <td colSpan={9} className="table-td font-semibold">Total</td>
+                    <td colSpan={9} className="table-td font-semibold text-xs sm:text-sm">Total Pengeluaran</td>
                     <td className="table-td text-right font-bold">{formatRupiah(report.summary.total_expense)}</td>
                   </tr>
                 </tfoot>

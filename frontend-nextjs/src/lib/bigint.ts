@@ -8,7 +8,7 @@
  * Aman untuk id < Number.MAX_SAFE_INTEGER (9 kuadriliun baris — lebih dari cukup).
  */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Tipe helper untuk BigInt serialization recursive
 type Serialized<T> = T extends bigint
   ? number
   : T extends Array<infer U>
