@@ -1,0 +1,114 @@
+// Prisma Schema — Next.js App Router (migrasi dari Laravel Eloquent)
+// Database: PostgreSQL (Neon)
+//
+// STRATEGI AUTH:
+// - NextAuth pakai JWT strategy (bukan database sessions)
+// - Tidak perlu tabel accounts/sessions/verification_tokens
+// - User auth disimpan di tabel users_nextauth (terpisah dari users Laravel)
+// - Tabel users, positions, projects, workers, attendances: BigInt id (sesuai Laravel BIGSERIAL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enum ────────────────────────────────────────────────────────────────────
+
+enum AttendanceStatus {
+  hadir
+  lembur
+  cor
+  alpha
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+/// Tabel khusus NextAuth — terpisah dari tabel users Laravel
+/// Berisi akun admin yang bisa login ke dashboard
+model AdminUser {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hash
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admin_users")
+}
+
+// ─── Domain Models (BigInt id sesuai Laravel BIGSERIAL) ──────────────────────
+
+/// Tabel positions — jabatan/posisi pekerja
+model Position {
+  id           BigInt    @id @default(autoincrement())
+  name         String
+  dailyWage    Int       @map("daily_wage")
+  overtimeWage Int       @map("overtime_wage")
+  castingWage  Int       @map("casting_wage")
+  createdAt    DateTime? @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt @map("updated_at")
+
+  workers Worker[]
+
+  @@map("positions")
+}
+
+/// Tabel projects — proyek konstruksi
+model Project {
+  id          BigInt    @id @default(autoincrement())
+  name        String
+  location    String
+  description String?   @db.Text
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  workers Worker[]
+
+  @@index([isActive])
+  @@map("projects")
+}
+
+/// Tabel workers — data pekerja
+model Worker {
+  id          BigInt    @id @default(autoincrement())
+  projectId   BigInt    @map("project_id")
+  positionId  BigInt    @map("position_id")
+  name        String
+  phone       String?
+  address     String?   @db.Text
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  position    Position     @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+
+  @@index([projectId, isActive])
+  @@index([positionId])
+  @@map("workers")
+}
+
+/// Tabel attendances — data absensi harian
+model Attendance {
+  id        BigInt           @id @default(autoincrement())
+  workerId  BigInt           @map("worker_id")
+  date      DateTime         @db.Date
+  status    AttendanceStatus
+  wage      Int
+  createdAt DateTime?        @default(now()) @map("created_at")
+  updatedAt DateTime?        @updatedAt @map("updated_at")
+
+  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@unique([workerId, date])
+  @@index([date])
+  @@map("attendances")
+}

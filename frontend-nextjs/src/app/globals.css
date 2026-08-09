@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700&display=swap');
+
+/* ─── CSS Variables ──────────────────────────────────────────────────────── */
+:root {
+  --amber:         #f59e0b;
+  --amber-light:   #fef3c7;
+  --amber-dark:    #d97706;
+  --sidebar-width: 240px;
+  --radius:        0.625rem;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { @apply bg-amber-50/40 text-stone-900; }
+  a    { color: inherit; text-decoration: none; }
+
+  /* Hilangkan outline default browser, ganti dengan focus ring amber */
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35);
+  }
+}
+
+/* ─── Components ─────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── Card ── */
+  .card {
+    @apply bg-white rounded-xl border border-amber-100 shadow-card p-6;
+  }
+  .card-flat {
+    @apply bg-white rounded-xl border border-stone-100 p-6;
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-amber-500 text-white px-4 py-2.5 rounded-xl
+           text-sm font-semibold tracking-wide
+           hover:bg-amber-600 active:scale-[0.98]
+           transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed
+           focus-visible:ring-0;
+    box-shadow: 0 1px 2px rgba(180,83,9,0.25);
+  }
+  .btn-primary:focus-visible { box-shadow: var(--tw-shadow), 0 0 0 3px rgba(245,158,11,0.4); }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-white text-stone-700 px-4 py-2.5 rounded-xl
+           text-sm font-semibold tracking-wide
+           border border-stone-200
+           hover:bg-stone-50 hover:border-stone-300 active:scale-[0.98]
+           transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+           bg-red-500 text-white px-4 py-2.5 rounded-xl
+           text-sm font-semibold
+           hover:bg-red-600 active:scale-[0.98]
+           transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           text-stone-500 px-3 py-2 rounded-lg text-sm font-medium
+           hover:bg-stone-100 hover:text-stone-700
+           transition-colors duration-150;
+  }
+
+  /* ── Input / Select / Textarea ── */
+  .input-field {
+    @apply w-full px-3.5 py-2.5 text-sm text-stone-900
+           bg-white border border-stone-200 rounded-xl
+           transition-all duration-150
+           placeholder:text-stone-400
+           disabled:bg-stone-50 disabled:text-stone-400 disabled:cursor-not-allowed;
+  }
+  .input-field:focus {
+    @apply border-amber-400 outline-none;
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+  }
+  .input-field:hover:not(:focus):not(:disabled) {
+    @apply border-stone-300;
+  }
+
+  /* Select khusus — tambahkan chevron kustom */
+  select.input-field {
+    @apply appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%23a8a29e' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem;
+  }
+
+  /* Label */
+  .input-label {
+    @apply block text-xs font-semibold text-stone-500 uppercase tracking-wider mb-1.5;
+  }
+
+  /* Input group (icon + input) */
+  .input-group {
+    @apply relative;
+  }
+  .input-group .input-icon {
+    @apply absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none;
+  }
+  .input-group .input-field {
+    @apply pl-10;
+  }
+
+  /* ── Badges status absensi ── */
+  .badge-hadir  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700; }
+  .badge-lembur { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100   text-blue-700;    }
+  .badge-cor    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100  text-amber-700;   }
+  .badge-alpha  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100    text-red-700;     }
+
+  /* ── Table ── */
+  .table-container { @apply overflow-x-auto; }
+  .table-base   { @apply min-w-full divide-y divide-stone-100; }
+  .table-head   { @apply bg-amber-50/60; }
+  .table-th     { @apply px-4 py-3 text-left text-xs font-bold text-stone-500 uppercase tracking-wider; }
+  .table-td     { @apply px-4 py-3.5 text-sm text-stone-800 whitespace-nowrap; }
+  .table-row    { @apply bg-white hover:bg-amber-50/40 transition-colors duration-100; }
+
+  /* ── Page header ── */
+  .page-title    { @apply text-xl font-bold text-stone-900 tracking-tight; }
+  .page-subtitle { @apply text-sm text-stone-500 mt-0.5; }
+
+  /* ── Sidebar nav item ── */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl
+           text-sm font-medium text-stone-400
+           hover:bg-stone-800 hover:text-amber-200
+           transition-all duration-150 cursor-pointer;
+  }
+  .sidebar-item-active {
+    @apply bg-amber-500/15 text-amber-300;
+    box-shadow: inset 3px 0 0 #f59e0b;
+  }
+
+  /* ── Divider ── */
+  .divider { @apply border-t border-stone-100 my-4; }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50
+           flex items-center justify-center p-4;
+  }
+  .modal-panel {
+    @apply relative bg-white rounded-2xl shadow-card-md
+           w-full max-w-md z-10 overflow-hidden;
+  }
+  .modal-header {
+    @apply px-6 pt-6 pb-4 border-b border-stone-100 flex items-center justify-between;
+  }
+  .modal-body   { @apply px-6 py-5 space-y-4; }
+  .modal-footer { @apply px-6 py-4 bg-stone-50/50 border-t border-stone-100 flex justify-end gap-3; }
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Scrollbar tipis */
+  .scrollbar-thin::-webkit-scrollbar        { width: 4px; height: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track  { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb  { @apply bg-stone-300 rounded-full; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { @apply bg-stone-400; }
+
+  /* Amber glow — untuk elemen highlight */
+  .glow-amber { box-shadow: 0 0 20px rgba(245,158,11,0.3); }
+  .ring-amber  { box-shadow: 0 0 0 3px rgba(245,158,11,0.35); }
+
+  /* Gradient header hero */
+  .bg-amber-gradient {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
+  }
+}
