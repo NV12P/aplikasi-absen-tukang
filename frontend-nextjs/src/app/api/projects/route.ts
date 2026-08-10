@@ -30,14 +30,15 @@ export const POST = apiHandler(async (req: NextRequest) => {
   const parsed = projectSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
 
-  const { name, location, description, start_date, end_date, is_active } = parsed.data;
+  const { name, location, description, end_date, is_active } = parsed.data;
 
   const project = await prisma.project.create({
     data: {
       name,
       location,
       description: description ?? null,
-      startDate: start_date ? new Date(start_date) : null,
+      // start_date selalu otomatis dari server (tanggal hari ini)
+      startDate: new Date(),
       endDate: end_date ? new Date(end_date) : null,
       isActive: is_active ?? true,
     },

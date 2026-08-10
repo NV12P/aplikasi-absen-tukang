@@ -9,6 +9,7 @@ const updateSchema = z.object({
   name: z.string().min(1).optional(),
   location: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
+  // start_date bisa diedit saat edit proyek
   start_date: z.string().nullable().optional(),
   end_date: z.string().nullable().optional(),
   is_active: z.boolean().optional(),
