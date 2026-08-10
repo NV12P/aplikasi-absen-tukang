@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Edit2, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
@@ -103,7 +102,14 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
       }
 
       const { data } = await res.json();
-      setProjects((prev) => [data, ...prev]);
+      const normalized = {
+        ...data,
+        startDate: data.startDate ? String(data.startDate).split("T")[0] : null,
+        endDate: data.endDate ? String(data.endDate).split("T")[0] : null,
+        createdAt: data.createdAt ? String(data.createdAt) : "",
+        updatedAt: data.updatedAt ? String(data.updatedAt) : "",
+      };
+      setProjects((prev) => [normalized, ...prev]);
       setShowAddModal(false);
       toast.success(`Proyek "${addForm.name}" berhasil ditambahkan.`);
       router.refresh();
@@ -139,8 +145,13 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
           name: editForm.name,
           location: editForm.location,
           description: editForm.description || null,
-          start_date: editForm.start_date || null,
-          end_date: editForm.end_date || null,
+          // start_date tidak dikirim karena readonly — tidak boleh diubah dari client
+          // end_date: kirim jika diisi, null jika dikosongkan manual, undefined jika biarkan server auto-fill
+          ...(editForm.end_date
+            ? { end_date: editForm.end_date }
+            : editForm.is_active
+            ? { end_date: null }  // aktif → hapus end_date
+            : {}),                 // selesai + kosong → server auto-fill hari ini
           is_active: editForm.is_active,
         }),
       });
@@ -152,7 +163,17 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
       }
 
       const { data } = await res.json();
-      setProjects((prev) => prev.map((p) => (p.id === editId ? data : p)));
+
+      // Normalize tanggal dari ISO ke format YYYY-MM-DD untuk konsistensi state
+      const normalized = {
+        ...data,
+        startDate: data.startDate ? String(data.startDate).split("T")[0] : null,
+        endDate: data.endDate ? String(data.endDate).split("T")[0] : null,
+        createdAt: data.createdAt ? String(data.createdAt) : "",
+        updatedAt: data.updatedAt ? String(data.updatedAt) : "",
+      };
+
+      setProjects((prev) => prev.map((p) => (p.id === editId ? normalized : p)));
       setShowEditModal(false);
       toast.success(`Proyek "${editForm.name}" berhasil diperbarui.`);
       router.refresh();
@@ -224,6 +245,8 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
                 <th>Nama Proyek</th>
                 <th>Lokasi</th>
                 <th>Deskripsi</th>
+                <th>Tgl Mulai</th>
+                <th>Tgl Selesai</th>
                 <th>Status</th>
                 <th>Aksi</th>
               </tr>
@@ -231,7 +254,7 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
             <tbody>
               {projects.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "24px" }}>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "24px" }}>
                     Belum ada data proyek. Silakan tambahkan proyek baru.
                   </td>
                 </tr>
@@ -250,11 +273,20 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
                         {project.description || <span style={{ color: "var(--text-light)", fontStyle: "italic" }}>-</span>}
                       </span>
                     </td>
+                    <td style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                      {fmtDate(project.startDate)}
+                    </td>
+                    <td style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                      {fmtDate(project.endDate)}
+                    </td>
                     <td>{getStatusBadge(project)}</td>
                     <td>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button style={{ color: "var(--text-muted)" }} title="Edit" onClick={() => openEditModal(project)}>
-                          <Edit2 size={18} />
+                          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
                         </button>
                         <button
                           style={{ color: "var(--danger)" }}
@@ -262,7 +294,10 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
                           disabled={deleteId === project.id}
                           onClick={() => handleDelete(project.id, project.name)}
                         >
-                          <Trash2 size={18} />
+                          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -281,7 +316,9 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
             <div className="modal-header">
               <h2>Tambah Proyek Baru</h2>
               <button onClick={() => setShowAddModal(false)} style={{ color: "var(--text-muted)" }}>
-                <X size={20} />
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -355,7 +392,9 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
             <div className="modal-header">
               <h2>Edit Proyek</h2>
               <button onClick={() => setShowEditModal(false)} style={{ color: "var(--text-muted)" }}>
-                <X size={20} />
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -393,37 +432,88 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
                   />
                 </div>
 
-                <div style={{ display: "flex", gap: "16px" }}>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>Tgl Mulai</label>
-                    <input
-                      type="date"
-                      className="input-field"
-                      value={editForm.start_date}
-                      onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-group" style={{ flex: 1 }}>
-                    <label>Tgl Selesai</label>
-                    <input
-                      type="date"
-                      className="input-field"
-                      value={editForm.end_date}
-                      onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
-                    />
-                  </div>
+                {/* Tanggal Mulai — readonly, hanya info */}
+                <div className="form-group">
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    Tanggal Mulai
+                    <span style={{
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      background: "#fef3c7",
+                      color: "#92400e",
+                      padding: "1px 6px",
+                      borderRadius: "999px",
+                      border: "1px solid #fde68a",
+                    }}>
+                      otomatis
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    readOnly
+                    disabled
+                    value={editForm.start_date ? fmtDate(editForm.start_date) : "Belum diset"}
+                    style={{ backgroundColor: "#f8fafc", color: "#64748b", cursor: "not-allowed" }}
+                  />
+                  <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>
+                    Tanggal mulai ditetapkan otomatis saat proyek pertama kali dibuat.
+                  </p>
+                </div>
+
+                {/* Tanggal Selesai — editable, auto-set saat status jadi Selesai */}
+                <div className="form-group">
+                  <label style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    Tanggal Selesai
+                    {!editForm.is_active && (
+                      <span style={{
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        background: "#f1f5f9",
+                        color: "#475569",
+                        padding: "1px 6px",
+                        borderRadius: "999px",
+                        border: "1px solid #e2e8f0",
+                      }}>
+                        auto saat status &quot;Selesai&quot;
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    min={editForm.start_date || undefined}
+                    value={editForm.end_date}
+                    onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
+                  />
+                  <p style={{ fontSize: "11px", color: "#94a3b8", marginTop: "4px" }}>
+                    Kosongkan untuk mengisi otomatis saat status proyek diubah ke &quot;Selesai&quot;.
+                  </p>
                 </div>
 
                 <div className="form-group">
                   <label>Status</label>
                   <CustomSelect
                     value={editForm.is_active ? "true" : "false"}
-                    onChange={(val) => setEditForm({ ...editForm, is_active: val === "true" })}
+                    onChange={(val) => {
+                      const isActive = val === "true";
+                      setEditForm((prev) => ({
+                        ...prev,
+                        is_active: isActive,
+                        // Kalau diubah ke Aktif → clear end_date di form
+                        end_date: isActive ? "" : prev.end_date,
+                      }));
+                    }}
                     options={[
                       { value: "true", label: "Aktif" },
                       { value: "false", label: "Selesai" },
                     ]}
                   />
+                  {!editForm.is_active && !editForm.end_date && (
+                    <p style={{ fontSize: "11px", color: "#d97706", marginTop: "6px" }}>
+                      ⚡ Tanggal selesai akan otomatis diisi hari ini saat disimpan.
+                    </p>
+                  )}
                 </div>
               </div>
 

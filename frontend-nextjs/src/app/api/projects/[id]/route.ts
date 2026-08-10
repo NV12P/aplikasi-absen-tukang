@@ -39,14 +39,38 @@ export const PUT = apiHandler(async (req: NextRequest, { params }: Params) => {
 
   const { name, location, description, start_date, end_date, is_active } = parsed.data;
 
+  // Ambil data proyek lama untuk cek perubahan status
+  const existing = await prisma.project.findUnique({
+    where: { id: BigInt(id) },
+    select: { isActive: true, endDate: true },
+  });
+
+  // Logika auto end_date:
+  // - Jika status berubah dari aktif → selesai DAN end_date tidak diisi → auto hari ini
+  // - Jika status berubah dari selesai → aktif → clear end_date
+  let resolvedEndDate: Date | null | undefined = undefined;
+
+  if (end_date !== undefined) {
+    // User eksplisit mengisi end_date
+    resolvedEndDate = end_date ? new Date(end_date) : null;
+  } else if (is_active === false && existing?.isActive === true && !existing?.endDate) {
+    // Status berubah jadi selesai & belum ada end_date → auto hari ini
+    resolvedEndDate = new Date();
+  } else if (is_active === true && existing?.isActive === false) {
+    // Status berubah jadi aktif kembali → hapus end_date
+    resolvedEndDate = null;
+  }
+
   const project = await prisma.project.update({
     where: { id: BigInt(id) },
     data: {
       ...(name !== undefined && { name }),
       ...(location !== undefined && { location }),
       ...(description !== undefined && { description }),
+      // start_date bisa diedit manual dari form edit
       ...(start_date !== undefined && { startDate: start_date ? new Date(start_date) : null }),
-      ...(end_date !== undefined && { endDate: end_date ? new Date(end_date) : null }),
+      // end_date: pakai resolvedEndDate jika ada
+      ...(resolvedEndDate !== undefined && { endDate: resolvedEndDate }),
       ...(is_active !== undefined && { isActive: is_active }),
     },
   });
