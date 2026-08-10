@@ -50,71 +50,200 @@ export const GET = apiHandler(async (req: NextRequest) => {
     d.setUTCDate(weekStart.getUTCDate() + i);
     dates.push(d);
   }
+
   const dayNames = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
   const dateFmt = new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "2-digit", timeZone: "UTC" });
-
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet("Rekap Absensi");
-
-  sheet.mergeCells(1, 1, 1, 11);
-  sheet.getCell("A1").value = `Rekap Absensi — ${project.name}`;
-  sheet.getCell("A1").font = { bold: true, size: 13 };
-  sheet.getCell("A1").alignment = { horizontal: "center" };
-
-  sheet.mergeCells(2, 1, 2, 11);
-  sheet.getCell("A2").value = `Periode: ${dateFmt.format(weekStart)} s/d ${dateFmt.format(weekEnd)}`;
-  sheet.getCell("A2").alignment = { horizontal: "center" };
-  sheet.addRow([]);
-
-  const headerRow = sheet.addRow([
-    "No", "Nama Pekerja", "Jabatan",
-    ...dates.map((d, i) => `${dayNames[i]}\n${dateFmt.format(d)}`),
-    "Total Upah",
-  ]);
-  headerRow.height = 32;
-  headerRow.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E3A5F" } };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+  const fullDateFmt = new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit", month: "long", year: "numeric", timeZone: "UTC",
   });
 
+  const COL_COUNT = 11;
+
+  const COLOR_HEADER_BG = "FF1E3A5F";
+  const COLOR_HEADER_TEXT = "FFFFFFFF";
+  const COLOR_BORDER = "FFB0B8C1";
+  const COLOR_STRIPE_ODD = "FFFFFFFF";
+  const COLOR_STRIPE_EVEN = "FFF8FAFC";
+
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Absen Tukang";
+  workbook.created = new Date();
+
+  const sheet = workbook.addWorksheet("Rekap Absensi");
+
+  // ─── Baris 1: Judul "Rekap Absensi" ──────────────────────────────────────
+  sheet.mergeCells(1, 1, 1, COL_COUNT);
+  const titleCell = sheet.getCell("A1");
+  titleCell.value = "REKAP ABSENSI";
+  titleCell.font = { bold: true, size: 14, color: { argb: COLOR_HEADER_TEXT } };
+  titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLOR_HEADER_BG } };
+  titleCell.alignment = { horizontal: "center", vertical: "middle" };
+  sheet.getRow(1).height = 28;
+
+  // ─── Baris 2: Lokasi (tanpa fill, hitam default) ──────────────────────────
+  sheet.mergeCells(2, 1, 2, COL_COUNT);
+  const locCell = sheet.getCell("A2");
+  locCell.value = `Lokasi: ${project.name}`;
+  locCell.font = { size: 12, bold: true, color: { argb: "FF000000" } };
+  locCell.alignment = { horizontal: "left", vertical: "middle" };
+  sheet.getRow(2).height = 20;
+
+  // ─── Baris 3: Periode (tanpa fill, hitam default) ─────────────────────────
+  sheet.mergeCells(3, 1, 3, COL_COUNT);
+  const periodCell = sheet.getCell("A3");
+  periodCell.value = `Periode: ${fullDateFmt.format(weekStart)} s/d ${fullDateFmt.format(weekEnd)}`;
+  periodCell.font = { size: 12, color: { argb: "FF000000" } };
+  periodCell.alignment = { horizontal: "left", vertical: "middle" };
+  sheet.getRow(3).height = 20;
+
+  // ─── Baris 4: Spacer ─────────────────────────────────────────────────────
+  sheet.addRow([]);
+  sheet.getRow(4).height = 6;
+
+  // ─── Baris 5: Header kolom ───────────────────────────────────────────────
+  const headerLabels = [
+    "No",
+    "Nama Pekerja",
+    "Jabatan",
+    ...dates.map((d, i) => `${dayNames[i]}\n${dateFmt.format(d)}`),
+    "Total Upah",
+  ];
+
+  const headerRow = sheet.addRow(headerLabels);
+  headerRow.height = 36;
+
+  headerRow.eachCell((cell) => {
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLOR_HEADER_BG } };
+    cell.font = { bold: true, color: { argb: COLOR_HEADER_TEXT }, size: 10 };
+    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.border = {
+      top: { style: "medium", color: { argb: "FF0D2137" } },
+      bottom: { style: "medium", color: { argb: "FF0D2137" } },
+      left: { style: "thin", color: { argb: COLOR_BORDER } },
+      right: { style: "thin", color: { argb: COLOR_BORDER } },
+    };
+  });
+
+  // ─── Baris data pekerja ──────────────────────────────────────────────────
   let totalExpense = 0;
+  const COLOR_TOTAL_BG = "FFFAF6E3"; // krem
+
   workers.forEach((worker, idx) => {
     const cells: (string | number)[] = [idx + 1, worker.name, worker.position?.name ?? "-"];
+
     let totalWage = 0;
+    const statusList: (string | null)[] = [];
+
     dates.forEach((d) => {
       const key = `${worker.id}_${d.toISOString().split("T")[0]}`;
       const att = attMap.get(key);
-      cells.push(att ? att.status.toUpperCase() : "-");
+      cells.push(att?.status ?? "");
+      statusList.push(att?.status ?? null);
       totalWage += att?.wage ?? 0;
     });
+
     cells.push(totalWage);
     totalExpense += totalWage;
 
-    const row = sheet.addRow(cells);
-    row.alignment = { vertical: "middle", horizontal: "center" };
-    if (idx % 2 === 0) {
-      row.eachCell((cell) => {
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
-      });
-    }
-    row.getCell(11).numFmt = '"Rp"#,##0';
-    row.getCell(11).alignment = { horizontal: "right" };
+    const dataRow = sheet.addRow(cells);
+    dataRow.height = 24;
+
+    const isEven = idx % 2 === 0;
+    const rowBg = isEven ? COLOR_STRIPE_ODD : COLOR_STRIPE_EVEN;
+
+    dataRow.eachCell((cell, colNum) => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: rowBg } };
+      cell.font = { size: 10, color: { argb: "FF1F1F1F" } };
+
+      if (colNum === 1) {
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      } else if (colNum === 2 || colNum === 3) {
+        cell.alignment = { horizontal: "left", vertical: "middle", indent: 1 };
+      } else if (colNum >= 4 && colNum <= 10) {
+        const statusIdx = colNum - 4;
+        const status = statusList[statusIdx];
+
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.font = { bold: true, size: 11, color: { argb: "FF000000" } };
+
+        if (status === "hadir" || status === "lembur") {
+          cell.value = "✓";
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: rowBg } };
+        } else if (status === "cor") {
+          cell.value = "";
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD3D3D3" } };
+        } else if (status === "alpha") {
+          cell.value = "";
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFF6B6B" } };
+        } else {
+          cell.value = "";
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: rowBg } };
+        }
+      } else if (colNum === 11) {
+        cell.numFmt = '"Rp "#,##0';
+        cell.alignment = { horizontal: "right", vertical: "middle", indent: 1 };
+        cell.font = { bold: true, size: 10 };
+      }
+
+      cell.border = {
+        top: { style: "hair", color: { argb: COLOR_BORDER } },
+        bottom: { style: "hair", color: { argb: COLOR_BORDER } },
+        left: { style: "thin", color: { argb: COLOR_BORDER } },
+        right: { style: "thin", color: { argb: COLOR_BORDER } },
+      };
+    });
   });
 
-  const totalRow = sheet.addRow(["", "TOTAL", "", ...Array(7).fill(""), totalExpense]);
-  totalRow.font = { bold: true };
-  totalRow.getCell(11).numFmt = '"Rp"#,##0';
-  totalRow.getCell(11).alignment = { horizontal: "right" };
+  // ─── Baris total (tanpa border, warna krem FAFAE3) ────────────────────────
+  const totalCells: (string | number)[] = ["", "TOTAL", "", ...Array(7).fill(""), totalExpense];
+  const totalRow = sheet.addRow(totalCells);
+  totalRow.height = 24;
 
+  totalRow.eachCell((cell, colNum) => {
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: COLOR_TOTAL_BG } };
+    cell.font = { bold: true, size: 12, color: { argb: "FF5D4037" } };
+    cell.border = {}; // Tidak ada border
+
+    if (colNum === 2) {
+      cell.alignment = { horizontal: "left", vertical: "middle", indent: 1 };
+    } else if (colNum === 11) {
+      cell.numFmt = '"Rp "#,##0';
+      cell.alignment = { horizontal: "right", vertical: "middle", indent: 1 };
+    } else {
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    }
+  });
+
+  // ─── Lebar kolom ─────────────────────────────────────────────────────────
   sheet.columns = [
-    { width: 5 }, { width: 24 }, { width: 18 },
-    ...Array(7).fill({ width: 9 }),
-    { width: 18 },
+    { width: 5 },   // No
+    { width: 26 },  // Nama
+    { width: 20 },  // Jabatan
+    { width: 11 },  // Sen
+    { width: 11 },  // Sel
+    { width: 11 },  // Rab
+    { width: 11 },  // Kam
+    { width: 11 },  // Jum
+    { width: 11 },  // Sab
+    { width: 11 },  // Min
+    { width: 18 },  // Total Upah
   ];
 
+  // ─── Page setup ───────────────────────────────────────────────────────────
+  sheet.pageSetup = {
+    paperSize: 9,
+    orientation: "landscape",
+    fitToPage: true,
+    fitToWidth: 1,
+    margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 },
+  };
+
+  const lastDataRow = 5 + workers.length + 1;
+  sheet.pageSetup.printArea = `A1:K${lastDataRow}`;
+  sheet.headerFooter.oddFooter = `&L&8Dicetak: ${new Date().toLocaleDateString("id-ID")}&R&8Halaman &P dari &N`;
+
   const buffer = await workbook.xlsx.writeBuffer();
-  const filename = `rekap_${project.name.replace(/\s+/g, "_")}_${weekStr}.xlsx`;
+  const filename = `Rekap_Absensi_${project.name.replace(/\s+/g, "_")}_${weekStr}.xlsx`;
 
   return new NextResponse(buffer as ArrayBuffer, {
     headers: {
