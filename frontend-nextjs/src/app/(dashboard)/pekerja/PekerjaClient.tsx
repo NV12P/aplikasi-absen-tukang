@@ -2,218 +2,339 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatRupiah } from "@/lib/wage";
 import { useToast } from "@/components/ui/Toast";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface WorkerRow {
-  id: number; name: string; phone: string | null; address: string | null;
-  isActive: boolean; projectId: number; positionId: number;
+  id: number;
+  name: string;
+  phone: string | null;
+  address: string | null;
+  isActive: boolean;
+  projectId: number;
+  positionId: number;
   project: { id: number; name: string } | null;
-  position: { id: number; name: string; dailyWage: number; overtimeWage: number; castingWage: number } | null;
+  position: { id: number; name: string; dailyWage: number } | null;
 }
-interface ProjectOption { id: number; name: string }
-interface PositionOption { id: number; name: string; dailyWage: number; overtimeWage: number; castingWage: number }
 
-const emptyForm = { name: "", phone: "", address: "", project_id: 0, position_id: 0, is_active: true };
+interface ProjectOption {
+  id: number;
+  name: string;
+}
+
+interface PositionOption {
+  id: number;
+  name: string;
+  dailyWage: number;
+}
+
+const emptyForm = {
+  name: "",
+  phone: "",
+  address: "",
+  project_id: "",
+  position_id: "",
+  is_active: true,
+};
 
 export function PekerjaClient({
-  initialWorkers, projects, positions,
-}: { initialWorkers: WorkerRow[]; projects: ProjectOption[]; positions: PositionOption[] }) {
+  initialWorkers,
+  projects,
+  positions,
+}: {
+  initialWorkers: WorkerRow[];
+  projects: ProjectOption[];
+  positions: PositionOption[];
+}) {
   const router = useRouter();
   const toast = useToast();
   const [workers, setWorkers] = useState(initialWorkers);
-  const [showModal, setShowModal] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [loading, setLoading] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<string>("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingWorker, setEditingWorker] = useState<WorkerRow | null>(null);
+  const [formData, setFormData] = useState(emptyForm);
+  const [submitting, setSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  function openCreate() { setForm(emptyForm); setEditId(null); setShowModal(true); }
-  function openEdit(w: WorkerRow) {
-    setForm({ name: w.name, phone: w.phone ?? "", address: w.address ?? "",
-      project_id: w.projectId, position_id: w.positionId, is_active: w.isActive });
-    setEditId(w.id); setShowModal(true);
+  function openAddModal() {
+    setEditingWorker(null);
+    setFormData({
+      name: "",
+      phone: "",
+      address: "",
+      position_id: positions.length > 0 ? String(positions[0].id) : "",
+      project_id: selectedProject || (projects.length > 0 ? String(projects[0].id) : ""),
+      is_active: true,
+    });
+    setIsModalOpen(true);
+  }
+
+  function openEditModal(worker: WorkerRow) {
+    setEditingWorker(worker);
+    setFormData({
+      name: worker.name,
+      phone: worker.phone || "",
+      address: worker.address || "",
+      position_id: worker.positionId ? String(worker.positionId) : "",
+      project_id: worker.projectId ? String(worker.projectId) : "",
+      is_active: worker.isActive,
+    });
+    setIsModalOpen(true);
+  }
+
+  async function handleDelete(id: number, name: string) {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus pekerja "${name}"? Data pekerja ini beserta riwayatnya akan dihapus.`)) {
+      return;
+    }
+
+    setDeleteId(id);
+    try {
+      const res = await fetch(`/api/workers/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        toast.error("Gagal menghapus pekerja");
+        return;
+      }
+      setWorkers((prev) => prev.filter((w) => w.id !== id));
+      toast.success(`Pekerja "${name}" berhasil dihapus.`);
+      router.refresh();
+    } catch {
+      toast.error("Tidak dapat terhubung ke server");
+    } finally {
+      setDeleteId(null);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault();
+    setSubmitting(true);
     try {
-      const res = await fetch(editId ? `/api/workers/${editId}` : "/api/workers", {
-        method: editId ? "PUT" : "POST",
+      const url = editingWorker ? `/api/workers/${editingWorker.id}` : "/api/workers";
+      const method = editingWorker ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, phone: form.phone || null,
-          address: form.address || null, project_id: Number(form.project_id),
-          position_id: Number(form.position_id), is_active: form.is_active }),
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone || null,
+          address: formData.address || null,
+          project_id: Number(formData.project_id),
+          position_id: Number(formData.position_id),
+          is_active: formData.is_active,
+        }),
       });
-      if (!res.ok) { const e = await res.json().catch(()=>({})); toast.error(typeof e?.error==="string"?e.error:"Gagal menyimpan"); return; }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || "Gagal menyimpan pekerja");
+        return;
+      }
+
       const { data } = await res.json();
-      setShowModal(false);
-      if (editId) { setWorkers(p => p.map(w => w.id===editId ? data : w)); toast.success("Data pekerja diperbarui"); }
-      else { setWorkers(p => [...p, data]); toast.success("Pekerja ditambahkan"); }
+      setIsModalOpen(false);
+
+      if (editingWorker) {
+        setWorkers((prev) => prev.map((w) => (w.id === editingWorker.id ? data : w)));
+        toast.success(`Data pekerja "${formData.name}" berhasil diperbarui.`);
+      } else {
+        setWorkers((prev) => [...prev, data]);
+        toast.success(`Pekerja baru "${formData.name}" berhasil ditambahkan.`);
+      }
       router.refresh();
-    } catch { toast.error("Tidak dapat terhubung ke server"); }
-    finally { setLoading(false); }
+    } catch {
+      toast.error("Gagal menyimpan pekerja");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  async function handleDelete(id: number) {
-    setDeleteId(id);
-    try {
-      if (!(await fetch(`/api/workers/${id}`,{method:"DELETE"})).ok) { toast.error("Gagal menghapus"); return; }
-      setWorkers(p => p.filter(w => w.id !== id)); toast.success("Pekerja dihapus");
-    } catch { toast.error("Tidak dapat terhubung ke server"); }
-    finally { setDeleteId(null); }
-  }
+  const displayWorkers = selectedProject
+    ? workers.filter((w) => String(w.projectId) === selectedProject)
+    : workers;
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="page-title">Pekerja</h1>
-          <p className="page-subtitle">Kelola data pekerja per proyek</p>
+    <div className="page-container">
+      {/* Toolbar */}
+      <div className="page-toolbar">
+        <div className="page-toolbar-left">
+          <CustomSelect
+            value={selectedProject}
+            onChange={(val) => setSelectedProject(val)}
+            placeholder="Semua Proyek..."
+            style={{ minWidth: "200px" }}
+            options={[
+              { value: "", label: "Semua Proyek..." },
+              ...projects.map((p) => ({ value: p.id, label: p.name })),
+            ]}
+          />
         </div>
-        <button onClick={openCreate} className="btn-primary flex-shrink-0">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="hidden sm:inline">Tambah Pekerja</span>
-          <span className="sm:hidden">Tambah</span>
-        </button>
+        <div className="page-toolbar-right">
+          <button
+            className="btn-primary"
+            style={{ padding: "10px 20px", borderRadius: "8px" }}
+            onClick={openAddModal}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+            <span>Tambah Pekerja</span>
+          </button>
+        </div>
       </div>
 
-      {/* Desktop tabel */}
-      <div className="hidden sm:block card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table-base" aria-label="Daftar pekerja">
-            <thead className="table-head">
+      <div className="card" style={{ padding: "0" }}>
+        <div className="table-container">
+          <table className="table" style={{ minWidth: "600px" }}>
+            <thead>
               <tr>
-                <th className="table-th">Nama</th>
-                <th className="table-th">Jabatan</th>
-                <th className="table-th">Proyek</th>
-                <th className="table-th">Upah/Hari</th>
-                <th className="table-th">Status</th>
-                <th className="table-th">Aksi</th>
+                <th>Nama Pekerja</th>
+                <th>Posisi / Jabatan</th>
+                <th>Proyek</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
-              {workers.length === 0 ? (
-                <tr><td colSpan={6} className="table-td text-center text-stone-400 py-10">Belum ada data pekerja</td></tr>
-              ) : workers.map((w) => (
-                <tr key={w.id} className="table-row">
-                  <td className="table-td font-semibold">{w.name}</td>
-                  <td className="table-td text-stone-500">{w.position?.name ?? "-"}</td>
-                  <td className="table-td text-stone-500">{w.project?.name ?? "-"}</td>
-                  <td className="table-td text-stone-500">{w.position ? formatRupiah(w.position.dailyWage) : "-"}</td>
-                  <td className="table-td"><span className={w.isActive?"badge-hadir":"badge-alpha"}>{w.isActive?"Aktif":"Nonaktif"}</span></td>
-                  <td className="table-td">
-                    <div className="flex gap-3">
-                      <button onClick={() => openEdit(w)} className="text-amber-600 hover:text-amber-700 text-sm font-semibold">Edit</button>
-                      <button onClick={() => handleDelete(w.id)} disabled={deleteId===w.id}
-                        className="text-red-500 hover:text-red-700 text-sm font-semibold disabled:opacity-40">
-                        {deleteId===w.id?"...":"Hapus"}
-                      </button>
-                    </div>
+            <tbody>
+              {displayWorkers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: "center", padding: "24px" }}>
+                    {workers.length === 0
+                      ? "Belum ada data pekerja. Silakan tambahkan pekerja baru."
+                      : "Tidak ada pekerja di proyek ini."}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                displayWorkers.map((worker) => (
+                  <tr key={worker.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--text-main)" }}>{worker.name}</div>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        {worker.phone || "No HP tidak tersedia"}
+                      </div>
+                    </td>
+                    <td style={{ color: "var(--text-muted)" }}>{worker.position?.name || "-"}</td>
+                    <td style={{ color: "var(--text-muted)" }}>{worker.project?.name || "-"}</td>
+                    <td>
+                      {worker.isActive ? (
+                        <span className="badge" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>Aktif</span>
+                      ) : (
+                        <span className="badge" style={{ backgroundColor: "#fee2e2", color: "#991b1b" }}>Nonaktif</span>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button style={{ color: "var(--text-muted)" }} title="Edit" onClick={() => openEditModal(worker)}>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          style={{ color: "var(--danger)" }}
+                          title="Hapus"
+                          disabled={deleteId === worker.id}
+                          onClick={() => handleDelete(worker.id, worker.name)}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Mobile card list */}
-      <div className="sm:hidden space-y-3">
-        {workers.length === 0 ? (
-          <div className="card text-center py-10 text-stone-400">Belum ada data pekerja</div>
-        ) : workers.map((w) => (
-          <div key={w.id} className="card space-y-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-semibold text-stone-900">{w.name}</p>
-                <p className="text-sm text-stone-500 mt-0.5">{w.position?.name ?? "-"}</p>
-              </div>
-              <span className={`flex-shrink-0 ${w.isActive?"badge-hadir":"badge-alpha"}`}>{w.isActive?"Aktif":"Nonaktif"}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <span className="text-stone-400">Proyek</span>
-                <p className="font-medium text-stone-700 truncate">{w.project?.name ?? "-"}</p>
-              </div>
-              <div>
-                <span className="text-stone-400">Upah/Hari</span>
-                <p className="font-medium text-stone-700">{w.position ? formatRupiah(w.position.dailyWage) : "-"}</p>
-              </div>
-            </div>
-            <div className="flex gap-3 pt-1 border-t border-stone-100">
-              <button onClick={() => openEdit(w)} className="flex-1 text-center text-sm font-semibold text-amber-600 hover:text-amber-700 py-1">Edit</button>
-              <div className="w-px bg-stone-100"/>
-              <button onClick={() => handleDelete(w.id)} disabled={deleteId===w.id}
-                className="flex-1 text-center text-sm font-semibold text-red-500 hover:text-red-700 py-1 disabled:opacity-40">
-                {deleteId===w.id?"...":"Hapus"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Modal bottom sheet / centered */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !loading && setShowModal(false)} aria-hidden="true"/>
-          <div className="relative bg-white w-full sm:max-w-md z-10 rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[92dvh] flex flex-col">
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
-              <h2 className="text-base font-bold text-stone-900">{editId?"Edit Pekerja":"Tambah Pekerja"}</h2>
-              <button onClick={() => setShowModal(false)} className="btn-ghost p-1" aria-label="Tutup">
+              <h2>{editingWorker ? "Edit Pekerja" : "Tambah Pekerja Baru"}</h2>
+              <button onClick={() => setIsModalOpen(false)} style={{ color: "var(--text-muted)" }}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="overflow-y-auto flex-1">
-              <form id="pekerja-form" onSubmit={handleSubmit} className="modal-body">
-                <div>
-                  <label htmlFor="w-name" className="input-label">Nama *</label>
-                  <input id="w-name" className="input-field" required value={form.name}
-                    onChange={e => setForm({...form, name: e.target.value})} />
+
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Nama Pekerja</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
                 </div>
-                <div>
-                  <label htmlFor="w-phone" className="input-label">No. HP</label>
-                  <input id="w-phone" type="tel" className="input-field" value={form.phone}
-                    onChange={e => setForm({...form, phone: e.target.value})} />
+
+                <div style={{ display: "flex", gap: "16px" }}>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>No HP (Opsional)</label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Jabatan</label>
+                    <CustomSelect
+                      value={formData.position_id}
+                      onChange={(val) => setFormData({ ...formData, position_id: val })}
+                      placeholder="Pilih Jabatan..."
+                      options={[
+                        { value: "", label: "Pilih Jabatan..." },
+                        ...positions.map((p) => ({ value: p.id, label: p.name })),
+                      ]}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="w-address" className="input-label">Alamat</label>
-                  <textarea id="w-address" className="input-field resize-none" rows={2} value={form.address}
-                    onChange={e => setForm({...form, address: e.target.value})} />
+
+                <div className="form-group">
+                  <label>Penugasan Proyek</label>
+                  <CustomSelect
+                    value={formData.project_id}
+                    onChange={(val) => setFormData({ ...formData, project_id: val })}
+                    placeholder="Pilih Proyek..."
+                    options={[
+                      { value: "", label: "Pilih Proyek..." },
+                      ...projects.map((p) => ({ value: p.id, label: p.name })),
+                    ]}
+                  />
                 </div>
-                <div>
-                  <label htmlFor="w-project" className="input-label">Proyek *</label>
-                  <select id="w-project" className="input-field" required value={form.project_id}
-                    onChange={e => setForm({...form, project_id: Number(e.target.value)})}>
-                    <option value={0} disabled>Pilih proyek...</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+
+                <div className="form-group">
+                  <label>Status</label>
+                  <CustomSelect
+                    value={formData.is_active ? "true" : "false"}
+                    onChange={(val) => setFormData({ ...formData, is_active: val === "true" })}
+                    options={[
+                      { value: "true", label: "Aktif" },
+                      { value: "false", label: "Nonaktif" },
+                    ]}
+                  />
                 </div>
-                <div>
-                  <label htmlFor="w-position" className="input-label">Jabatan *</label>
-                  <select id="w-position" className="input-field" required value={form.position_id}
-                    onChange={e => setForm({...form, position_id: Number(e.target.value)})}>
-                    <option value={0} disabled>Pilih jabatan...</option>
-                    {positions.map(p => <option key={p.id} value={p.id}>{p.name} — {formatRupiah(p.dailyWage)}/hari</option>)}
-                  </select>
-                </div>
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input type="checkbox" className="w-4 h-4 rounded border-stone-300 accent-amber-500"
-                    checked={form.is_active} onChange={e => setForm({...form, is_active: e.target.checked})} />
-                  <span className="text-sm font-medium text-stone-700">Pekerja Aktif</span>
-                </label>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button type="button" onClick={() => setShowModal(false)} disabled={loading} className="btn-secondary">Batal</button>
-              <button type="submit" form="pekerja-form" disabled={loading} className="btn-primary">
-                {loading ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary" disabled={submitting}>
+                  {submitting ? "Menyimpan..." : "Simpan"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

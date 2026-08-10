@@ -1,249 +1,500 @@
 "use client";
 
-import { useState } from "react";
-import { formatRupiah } from "@/lib/wage";
-import type { AttendanceStatus } from "@prisma/client";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
-interface ProjectOption { id: number; name: string }
+interface ProjectOption {
+  id: number;
+  name: string;
+}
 
-interface WorkerReportRow {
+interface WorkerRow {
   worker_id: number;
   worker_name: string;
   position: string;
   daily_wage: number;
-  days: Record<string, string>;
+  days: Record<string, "hadir" | "lembur" | "cor" | "alpha">;
   total_wage: number;
 }
 
-interface WeeklyReport {
-  summary: { project: string; period: string; total_workers: number; total_expense: number };
-  workers: WorkerReportRow[];
-}
+const HARI_PENDEK = ["M", "S", "S", "R", "K", "J", "S"];
 
-const STATUS_SHORT: Record<string, string> = { hadir: "H", lembur: "L", cor: "C", alpha: "A" };
-const STATUS_CLASS: Record<string, string> = {
-  hadir: "badge-hadir", lembur: "badge-lembur", cor: "badge-cor", alpha: "badge-alpha",
+const toDateStr = (d: Date): string => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
-function getWeekDates(weekStr: string): string[] {
-  const base = new Date(weekStr);
-  const day = base.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  base.setDate(base.getDate() + diff);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(base);
-    d.setDate(base.getDate() + i);
-    return d.toISOString().split("T")[0];
-  });
-}
+const getTodayStr = (): string => toDateStr(new Date());
 
-const DAY_NAMES = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
+const getMondayOfWeek = (dateStr: string): Date => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const getWeekDates = (dateStr: string): Date[] => {
+  const monday = getMondayOfWeek(dateStr);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+};
+
+const DayCell = ({ status }: { status?: string }) => {
+  let bg = "transparent";
+  let color = "var(--text-main)";
+  let content: React.ReactNode = "";
+
+  const norm = status ? status.toLowerCase().trim() : "";
+
+  if (norm === "hadir" || norm === "lembur") {
+    content = "✓";
+    color = "#15803d";
+  } else if (norm === "alpha") {
+    bg = "#ef4444";
+    color = "white";
+  } else if (norm === "cor") {
+    bg = "#9ca3af";
+    color = "white";
+  }
+
+  return (
+    <td
+      style={{
+        backgroundColor: bg,
+        color,
+        textAlign: "center",
+        fontWeight: 800,
+        fontSize: "16px",
+        padding: "0",
+        width: "44px",
+        minWidth: "44px",
+        height: "44px",
+        verticalAlign: "middle",
+        borderBottom: "1px solid var(--border-color)",
+        borderRight: "1px solid var(--border-color)",
+      }}
+    >
+      {content}
+    </td>
+  );
+};
 
 export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) {
   const toast = useToast();
-  const today = new Date().toISOString().split("T")[0];
-  const [selectedProject, setSelectedProject] = useState<number>(0);
-  const [selectedWeek, setSelectedWeek] = useState(today);
-  const [report, setReport] = useState<WeeklyReport | null>(null);
+  const today = getTodayStr();
+  const [selectedProject, setSelectedProject] = useState<string>("");
+  const [selectedWeek, setSelectedWeek] = useState<string>(today);
+  const [workerRows, setWorkerRows] = useState<WorkerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [search, setSearch] = useState("");
 
-  async function loadReport(projectId: number, week: string) {
-    if (!projectId) return;
-    setLoading(true);
-    setReport(null);
-    try {
-      const res = await fetch(`/api/attendance/report?project_id=${projectId}&week=${week}`);
-      if (!res.ok) throw new Error();
-      const { data } = await res.json();
-      setReport(data);
-    } catch {
-      toast.error("Gagal memuat rekap absensi");
-    } finally {
-      setLoading(false);
+  const weekDates = getWeekDates(selectedWeek);
+  const dateFrom = toDateStr(weekDates[0]);
+
+  useEffect(() => {
+    async function loadReport() {
+      if (!selectedProject) {
+        setWorkerRows([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/attendance/report?project_id=${selectedProject}&week=${dateFrom}`);
+        if (!res.ok) {
+          throw new Error("Gagal memuat rekap");
+        }
+
+        const { data } = await res.json();
+        const rawWorkers = data?.workers ?? [];
+
+        setWorkerRows(
+          rawWorkers.map((item: any) => ({
+            worker_id: item.worker_id ?? item.id,
+            worker_name: item.worker_name ?? item.name,
+            position: item.position,
+            daily_wage: item.daily_wage ?? 0,
+            days: item.days ?? {},
+            total_wage: item.total_wage ?? 0,
+          }))
+        );
+      } catch (err: any) {
+        toast.error(err.message || "Error fetching report");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
 
-  function handleProjectChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const id = Number(e.target.value);
-    setSelectedProject(id);
-    loadReport(id, selectedWeek);
-  }
-
-  function handleWeekChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setSelectedWeek(e.target.value);
-    loadReport(selectedProject, e.target.value);
-  }
+    loadReport();
+  }, [selectedProject, selectedWeek, dateFrom]);
 
   async function handleExport() {
     if (!selectedProject) return;
     setExporting(true);
     try {
-      const res = await fetch(
-        `/api/attendance/export?project_id=${selectedProject}&date=${selectedWeek}`
-      );
-      if (!res.ok) throw new Error();
+      const res = await fetch(`/api/attendance/export?project_id=${selectedProject}&date=${selectedWeek}`);
+      if (!res.ok) {
+        throw new Error("Gagal mengekspor file");
+      }
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `rekap_absensi_${selectedWeek}.xlsx`;
+      a.download = `rekap-absensi-${selectedWeek}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("File Excel berhasil diunduh");
     } catch {
-      toast.error("Gagal mengekspor file Excel");
+      toast.error("Gagal mengekspor rekap absensi");
     } finally {
       setExporting(false);
     }
   }
 
-  const weekDates = getWeekDates(selectedWeek);
+  const filteredRows = workerRows.filter((r) =>
+    r.worker_name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const grandTotal = filteredRows.reduce((s, r) => s + r.total_wage, 0);
+  const totalPekerja = filteredRows.length;
+  const totalCols = 13;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="page-title">Rekap Absensi</h1>
-          <p className="page-subtitle">Laporan kehadiran mingguan per proyek</p>
+    <div className="page-container">
+      {/* Toolbar */}
+      <div className="page-toolbar">
+        <div className="page-toolbar-left">
+          <CustomSelect
+            value={selectedProject}
+            onChange={(val) => setSelectedProject(val)}
+            placeholder="Pilih Proyek..."
+            style={{ minWidth: "200px" }}
+            options={[
+              { value: "", label: "Pilih Proyek..." },
+              ...projects.map((p) => ({ value: p.id, label: p.name })),
+            ]}
+          />
+
+          <input
+            type="date"
+            className="select-field"
+            style={{ minWidth: "150px" }}
+            value={selectedWeek}
+            onChange={(e) => setSelectedWeek(e.target.value)}
+          />
         </div>
-        {report && (
-          <button onClick={handleExport} disabled={exporting} className="btn-secondary flex items-center gap-2">
+
+        <div
+          style={{
+            background: "#f8fafc",
+            border: "1px solid #e5e7eb",
+            borderRadius: 10,
+            padding: "10px 14px",
+          }}
+        >
+          <div style={{ fontSize: 12, color: "#64748b", marginBottom: 2 }}>
+            Periode Minggu
+          </div>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>
+            {weekDates[0].toLocaleDateString("id-ID")} - {weekDates[6].toLocaleDateString("id-ID")}
+          </div>
+        </div>
+
+        <div className="page-toolbar-right">
+          <div className="input-group">
+            <svg className="input-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="Cari pekerja..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ paddingLeft: "40px" }}
+            />
+          </div>
+
+          <button
+            className="btn-outline"
+            onClick={handleExport}
+            disabled={!selectedProject || exporting}
+            style={{
+              opacity: !selectedProject || exporting ? 0.6 : 1,
+              cursor: !selectedProject || exporting ? "not-allowed" : "pointer",
+            }}
+          >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            {exporting ? "Mengekspor..." : "Export Excel"}
+            <span>{exporting ? "Mengunduh..." : "Export"}</span>
           </button>
-        )}
-      </div>
-
-      <div className="card">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="rek-project" className="input-label">Proyek</label>
-            <select id="rek-project" className="input-field" value={selectedProject}
-              onChange={handleProjectChange}>
-              <option value={0} disabled>Pilih proyek...</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="rek-week" className="input-label">Pilih Minggu</label>
-            <input id="rek-week" type="date" className="input-field" value={selectedWeek}
-              onChange={handleWeekChange} />
-          </div>
         </div>
       </div>
 
-      {loading && (
-        <div className="card flex items-center justify-center py-12">
-          <div className="flex items-center gap-2 text-gray-400">
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      {/* Card Ringkasan Compact */}
+      <div className="rekap-summary-grid">
+        <div className="card" style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "10px",
+              flexShrink: 0,
+              backgroundColor: "#fef3c7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#d97706",
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Memuat rekap...
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>
+              Total Upah Minggu Ini
+            </div>
+            <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "2px", whiteSpace: "nowrap" }}>
+              Rp {new Intl.NumberFormat("id-ID").format(grandTotal)}
+            </div>
           </div>
         </div>
-      )}
 
-      {report && !loading && (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-            {[
-              { label: "Proyek", value: report.summary.project },
-              { label: "Periode", value: report.summary.period },
-              { label: "Total Pekerja", value: String(report.summary.total_workers) },
-              { label: "Total Pengeluaran", value: formatRupiah(report.summary.total_expense) },
-            ].map((item) => (
-              <div key={item.label} className="card">
-                <p className="text-xs text-gray-500">{item.label}</p>
-                <p className="text-sm font-semibold text-gray-900 mt-1 truncate">{item.value}</p>
-              </div>
-            ))}
+        <div className="card" style={{ display: "flex", alignItems: "center", gap: "14px", padding: "14px 18px" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "10px",
+              flexShrink: 0,
+              backgroundColor: "#dbeafe",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#2563eb",
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
           </div>
-
-          <div className="card p-0 overflow-hidden">
-            {/* Hint scroll di mobile */}
-            <div className="sm:hidden px-4 py-2 bg-amber-50 border-b border-amber-100 flex items-center gap-1.5">
-              <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-              </svg>
-              <span className="text-xs text-amber-600 font-medium">Geser ke kanan untuk lihat semua hari</span>
+          <div>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 500 }}>
+              Total Pekerja
             </div>
-            <div className="table-container overflow-x-auto">
-              <table className="table-base min-w-[640px]" aria-label="Rekap absensi mingguan">
-                <thead className="table-head">
-                  <tr>
-                    <th className="table-th sticky left-0 bg-gray-50 z-10">Pekerja</th>
-                    <th className="table-th">Jabatan</th>
-                    {weekDates.map((d, i) => (
-                      <th key={d} className="table-th text-center min-w-[48px]">
-                        <div className="text-xs font-semibold">{DAY_NAMES[i]}</div>
-                        <div className="text-xs text-gray-400 font-normal">
-                          {new Date(d + "T00:00:00").getDate()}/{new Date(d + "T00:00:00").getMonth() + 1}
+            <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "2px" }}>
+              {totalPekerja}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabel Rekap Presisi */}
+      <div className="card" style={{ padding: "0", overflow: "hidden" }}>
+        <div className="table-container">
+          <table
+            className="table"
+            style={{
+              borderCollapse: "collapse",
+              width: "100%",
+              minWidth: "920px",
+            }}
+          >
+            <colgroup>
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "180px" }} />
+              <col style={{ width: "100px" }} />
+              <col style={{ width: "110px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "44px" }} />
+              <col style={{ width: "70px" }} />
+              <col style={{ width: "130px" }} />
+            </colgroup>
+
+            <thead>
+              <tr style={{ backgroundColor: "#f8fafc" }}>
+                <th rowSpan={2} style={{ textAlign: "center", verticalAlign: "middle", borderRight: "1px solid var(--border-color)", borderBottom: "1px solid var(--border-color)", padding: "10px 4px" }}>
+                  NO
+                </th>
+                <th rowSpan={2} style={{ textAlign: "left", verticalAlign: "middle", borderRight: "1px solid var(--border-color)", borderBottom: "1px solid var(--border-color)", padding: "10px 12px" }}>
+                  NAMA PEKERJA
+                </th>
+                <th rowSpan={2} style={{ textAlign: "center", verticalAlign: "middle", borderRight: "1px solid var(--border-color)", borderBottom: "1px solid var(--border-color)", padding: "10px 8px" }}>
+                  JABATAN
+                </th>
+                <th rowSpan={2} style={{ textAlign: "right", verticalAlign: "middle", borderRight: "1px solid var(--border-color)", borderBottom: "1px solid var(--border-color)", padding: "10px 12px" }}>
+                  UPAH/HARI
+                </th>
+                <th
+                  colSpan={7}
+                  style={{
+                    textAlign: "center",
+                    borderBottom: "1px solid var(--border-color)",
+                    borderRight: "1px solid var(--border-color)",
+                    letterSpacing: "0.5px",
+                    padding: "8px 4px",
+                  }}
+                >
+                  HARI KERJA
+                </th>
+                <th rowSpan={2} style={{ textAlign: "center", verticalAlign: "middle", lineHeight: 1.2, borderRight: "1px solid var(--border-color)", borderBottom: "1px solid var(--border-color)", padding: "10px 4px" }}>
+                  JML<br />HARI
+                </th>
+                <th rowSpan={2} style={{ textAlign: "right", verticalAlign: "middle", borderBottom: "1px solid var(--border-color)", padding: "10px 12px" }}>
+                  JUMLAH UPAH
+                </th>
+              </tr>
+              <tr style={{ backgroundColor: "#f8fafc" }}>
+                {weekDates.map((d, i) => (
+                  <th
+                    key={i}
+                    style={{
+                      textAlign: "center",
+                      padding: "6px 2px",
+                      lineHeight: 1.3,
+                      borderRight: "1px solid var(--border-color)",
+                      borderBottom: "1px solid var(--border-color)",
+                    }}
+                  >
+                    <div style={{ fontSize: "12px", fontWeight: 700 }}>
+                      {HARI_PENDEK[d.getDay()]}
+                    </div>
+                    <div style={{ fontSize: "11px", fontWeight: 400, color: "var(--text-muted)" }}>
+                      {d.getDate()}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={totalCols} style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+                    Memuat data rekap...
+                  </td>
+                </tr>
+              ) : !selectedProject ? (
+                <tr>
+                  <td colSpan={totalCols} style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+                    Pilih proyek untuk melihat rekap absensi.
+                  </td>
+                </tr>
+              ) : filteredRows.length === 0 ? (
+                <tr>
+                  <td colSpan={totalCols} style={{ textAlign: "center", padding: "48px", color: "var(--text-muted)" }}>
+                    Tidak ada data pekerja / rekap absensi untuk minggu ini.
+                  </td>
+                </tr>
+              ) : (
+                filteredRows.map((row, idx) => {
+                  const jmlHari = weekDates.reduce((n, d) => {
+                    const s = row.days[toDateStr(d)];
+                    return n + (s && s !== "alpha" ? 1 : 0);
+                  }, 0);
+
+                  return (
+                    <tr key={row.worker_id} style={{ borderBottom: "1px solid var(--border-color)" }}>
+                      <td style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "13px", borderRight: "1px solid var(--border-color)", padding: "8px 4px" }}>
+                        {idx + 1}
+                      </td>
+
+                      <td style={{ borderRight: "1px solid var(--border-color)", padding: "8px 12px" }}>
+                        <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--text-main)" }}>
+                          {row.worker_name}
                         </div>
-                      </th>
-                    ))}
-                    <th className="table-th text-right">Total Upah</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {report.workers.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="table-td text-center text-gray-400 py-8">
-                        Tidak ada data absensi untuk periode ini
+                      </td>
+
+                      <td style={{ textAlign: "center", fontSize: "13px", color: "var(--text-muted)", borderRight: "1px solid var(--border-color)", padding: "8px 8px" }}>
+                        {row.position}
+                      </td>
+
+                      <td style={{ textAlign: "right", fontWeight: 600, fontSize: "13px", borderRight: "1px solid var(--border-color)", padding: "8px 12px" }}>
+                        {row.daily_wage ? new Intl.NumberFormat("id-ID").format(row.daily_wage) : "-"}
+                      </td>
+
+                      {weekDates.map((d) => (
+                        <DayCell key={toDateStr(d)} status={row.days[toDateStr(d)]} />
+                      ))}
+
+                      <td style={{ textAlign: "center", fontWeight: 700, fontSize: "15px", borderRight: "1px solid var(--border-color)", padding: "8px 4px" }}>
+                        {jmlHari}
+                      </td>
+
+                      <td style={{ textAlign: "right", fontWeight: 700, whiteSpace: "nowrap", fontSize: "14px", padding: "8px 12px" }}>
+                        {new Intl.NumberFormat("id-ID").format(row.total_wage)}
                       </td>
                     </tr>
-                  ) : (
-                    report.workers.map((w) => (
-                      <tr key={w.worker_id} className="table-row">
-                        <td className="table-td font-medium sticky left-0 bg-white z-10">{w.worker_name}</td>
-                        <td className="table-td text-gray-500 text-xs">{w.position}</td>
-                        {weekDates.map((d) => {
-                          const status = w.days[d] as AttendanceStatus | undefined;
-                          return (
-                            <td key={d} className="table-td text-center">
-                              {status ? (
-                                <span className={`${STATUS_CLASS[status]} text-xs`}>
-                                  {STATUS_SHORT[status]}
-                                </span>
-                              ) : (
-                                <span className="text-gray-200 text-xs">—</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                        <td className="table-td text-right font-medium">{formatRupiah(w.total_wage)}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-gray-50 border-t-2 border-gray-200">
-                    <td colSpan={9} className="table-td font-semibold text-xs sm:text-sm">Total Pengeluaran</td>
-                    <td className="table-td text-right font-bold">{formatRupiah(report.summary.total_expense)}</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          <div className="flex items-center gap-4 text-xs flex-wrap">
-            <span className="text-gray-400">Keterangan:</span>
-            {[
-              { code: "H", label: "Hadir", cls: "badge-hadir" },
-              { code: "L", label: "Lembur", cls: "badge-lembur" },
-              { code: "C", label: "Cor", cls: "badge-cor" },
-              { code: "A", label: "Alpha", cls: "badge-alpha" },
-            ].map((item) => (
-              <span key={item.code} className={item.cls}>{item.code} = {item.label}</span>
-            ))}
+      {/* Legenda */}
+      <div
+        style={{
+          marginTop: "14px",
+          display: "flex",
+          gap: "20px",
+          flexWrap: "wrap",
+          fontSize: "13px",
+          color: "var(--text-muted)",
+        }}
+      >
+        {[
+          { color: "transparent", border: "1px solid var(--border-color)", label: "Hadir / Lembur", symbol: "✓" },
+          { color: "#ef4444", label: "Alpha (Tidak Hadir)" },
+          { color: "#9ca3af", label: "Cor" },
+          { color: "transparent", border: "1px solid var(--border-color)", label: "Tidak Ada Data" },
+        ].map((item) => (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "30px",
+                height: "22px",
+                backgroundColor: item.color,
+                border: item.border,
+                borderRadius: "4px",
+                fontSize: "13px",
+                fontWeight: 700,
+                color: item.color === "transparent" ? "var(--text-main)" : "white",
+                flexShrink: 0,
+              }}
+            >
+              {item.symbol ?? ""}
+            </span>
+            <span>{item.label}</span>
           </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

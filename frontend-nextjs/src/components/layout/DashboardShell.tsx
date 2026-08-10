@@ -5,28 +5,20 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Navbar } from "@/components/layout/Navbar";
 import type { SessionUser } from "@/types";
 
-/**
- * Client shell untuk dashboard layout.
- * Mengelola state mobile sidebar (buka/tutup).
- * Dipisah dari DashboardLayout (Server Component) agar auth check tetap di server.
- */
-export function DashboardShell({
-  user,
-  children,
-}: {
+interface DashboardShellProps {
   user: SessionUser;
   children: React.ReactNode;
-}) {
+}
+
+export function DashboardShell({ user, children }: DashboardShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-amber-50/40 overflow-hidden">
+    <div className="app-container">
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div className="main-content">
         <Navbar user={user} onMenuToggle={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin">
-          {children}
-        </main>
+        {children}
       </div>
     </div>
   );

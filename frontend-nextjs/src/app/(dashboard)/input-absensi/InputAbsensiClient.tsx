@@ -1,172 +1,257 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { AttendanceStatus } from "@prisma/client";
 import { useToast } from "@/components/ui/Toast";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
-interface ProjectOption { id: number; name: string }
-interface WorkerRow {
-  worker_id: number; worker_name: string; position: string;
-  current_status: AttendanceStatus | null;
+interface ProjectOption {
+  id: number;
+  name: string;
 }
 
-const STATUS_OPTIONS: AttendanceStatus[] = ["hadir", "lembur", "cor", "alpha"];
-const STATUS_LABELS: Record<AttendanceStatus, string> = { hadir: "Hadir", lembur: "Lembur", cor: "Cor", alpha: "Alpha" };
-const STATUS_COLORS: Record<AttendanceStatus, string> = {
-  hadir:  "bg-emerald-500 text-white border-emerald-500",
-  lembur: "bg-blue-500 text-white border-blue-500",
-  cor:    "bg-amber-500 text-white border-amber-500",
-  alpha:  "bg-red-500 text-white border-red-500",
-};
-const STATUS_COLORS_INACTIVE = "bg-white text-stone-400 border-stone-200 hover:border-stone-300";
+interface WorkerRow {
+  worker_id: number;
+  worker_name: string;
+  position: string;
+  already_attended?: boolean;
+  current_status: AttendanceStatus | null;
+  current_note?: string;
+}
+
+interface WorkerAttendanceState {
+  status: AttendanceStatus | "";
+  note: string;
+}
 
 export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) {
   const toast = useToast();
-  const today = new Date().toISOString().split("T")[0];
-  const [selectedProject, setSelectedProject] = useState<number>(0);
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedProject, setSelectedProject] = useState<string>("");
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
-  const [statuses, setStatuses] = useState<Record<number, AttendanceStatus>>({});
-  const [loadingWorkers, setLoadingWorkers] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [attendance, setAttendance] = useState<Record<number, WorkerAttendanceState>>({});
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function loadWorkers(projectId: number, date: string) {
-    if (!projectId) return;
-    setLoadingWorkers(true); setSaved(false);
-    try {
-      const res = await fetch(`/api/attendance/project/${projectId}?date=${date}`);
-      if (!res.ok) throw new Error();
-      const { data } = await res.json();
-      setWorkers(data);
-      const prefill: Record<number, AttendanceStatus> = {};
-      for (const w of data as WorkerRow[]) { if (w.current_status) prefill[w.worker_id] = w.current_status; }
-      setStatuses(prefill);
-    } catch { toast.error("Gagal memuat data pekerja"); setWorkers([]); }
-    finally { setLoadingWorkers(false); }
+  useEffect(() => {
+    async function loadWorkers() {
+      if (!selectedProject) {
+        setWorkers([]);
+        setAttendance({});
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const res = await fetch(`/api/attendance/project/${selectedProject}?date=${today}`);
+
+        if (!res.ok) {
+          throw new Error("Gagal memuat data pekerja");
+        }
+
+        const { data } = await res.json();
+        setWorkers(data);
+
+        const initialState: Record<number, WorkerAttendanceState> = {};
+        (data as WorkerRow[]).forEach((w) => {
+          initialState[w.worker_id] = {
+            status: w.current_status || "hadir",
+            note: w.current_note || "",
+          };
+        });
+        setAttendance(initialState);
+      } catch (err: any) {
+        toast.error(err.message || "Gagal memuat data pekerja");
+        setWorkers([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadWorkers();
+  }, [selectedProject]);
+
+  function handleStatusChange(workerId: number, status: AttendanceStatus) {
+    setAttendance((prev) => ({
+      ...prev,
+      [workerId]: { ...(prev[workerId] || { note: "" }), status },
+    }));
   }
 
-  const allFilled = workers.length > 0 && workers.every(w => statuses[w.worker_id]);
+  function handleNoteChange(workerId: number, note: string) {
+    setAttendance((prev) => ({
+      ...prev,
+      [workerId]: { ...(prev[workerId] || { status: "hadir" }), note },
+    }));
+  }
 
   async function handleSave() {
-    setSaving(true); setSaved(false);
+    if (!selectedProject) {
+      toast.error("Silakan pilih proyek terlebih dahulu!");
+      return;
+    }
+
+    setSubmitting(true);
     try {
+      const today = new Date().toISOString().split("T")[0];
+      const payload = {
+        project_id: Number(selectedProject),
+        date: today,
+        attendances: workers
+          .filter((w) => !w.already_attended)
+          .map((w) => ({
+            worker_id: w.worker_id,
+            status: attendance[w.worker_id]?.status || "hadir",
+            note: attendance[w.worker_id]?.note || "",
+          })),
+      };
+
       const res = await fetch("/api/attendance", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ project_id: selectedProject, date: selectedDate,
-          attendances: workers.map(w => ({ worker_id: w.worker_id, status: statuses[w.worker_id] ?? "alpha" })) }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) { toast.error("Gagal menyimpan absensi"); return; }
-      setSaved(true); toast.success("Absensi berhasil disimpan");
-      loadWorkers(selectedProject, selectedDate);
-    } catch { toast.error("Tidak dapat terhubung ke server"); }
-    finally { setSaving(false); }
+
+      if (!res.ok) {
+        throw new Error("Gagal menyimpan absensi");
+      }
+
+      toast.success("Data absensi berhasil disimpan!");
+
+      const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${today}`);
+      if (updatedRes.ok) {
+        const { data } = await updatedRes.json();
+        setWorkers(data);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan absensi");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="page-title">Input Absensi</h1>
-        <p className="page-subtitle">Catat kehadiran pekerja per hari</p>
+    <div className="page-container">
+      {/* Toolbar */}
+      <div className="page-toolbar">
+        <div className="page-toolbar-left">
+          <CustomSelect
+            value={selectedProject}
+            onChange={(val) => setSelectedProject(val)}
+            placeholder="Pilih Proyek..."
+            style={{ minWidth: "220px" }}
+            options={[
+              { value: "", label: "Pilih Proyek..." },
+              ...projects.map((p) => ({ value: p.id, label: p.name })),
+            ]}
+          />
+        </div>
+        <div className="page-toolbar-right">
+          <button
+            className="btn-primary"
+            style={{ padding: "10px 24px", borderRadius: "8px" }}
+            onClick={handleSave}
+            disabled={submitting || !selectedProject || workers.length === 0}
+          >
+            {submitting ? "Menyimpan..." : "Simpan Absensi"}
+          </button>
+        </div>
       </div>
 
-      {/* Filter card */}
-      <div className="card grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="ab-project" className="input-label">Proyek</label>
-          <select id="ab-project" className="input-field" value={selectedProject}
-            onChange={e => { const id = Number(e.target.value); setSelectedProject(id); loadWorkers(id, selectedDate); }}>
-            <option value={0} disabled>Pilih proyek...</option>
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="ab-date" className="input-label">Tanggal</label>
-          <input id="ab-date" type="date" className="input-field" value={selectedDate} max={today}
-            onChange={e => { setSelectedDate(e.target.value); loadWorkers(selectedProject, e.target.value); }} />
+      {/* Table Card */}
+      <div className="card" style={{ padding: "0" }}>
+        <div className="table-container">
+          <table className="table" style={{ minWidth: "640px" }}>
+            <thead>
+              <tr>
+                <th style={{ width: "25%" }}>Nama Pekerja</th>
+                <th style={{ width: "45%" }}>Kehadiran</th>
+                <th style={{ width: "30%" }}>Keterangan (Opsional)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading && !selectedProject ? (
+                <tr>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px" }}>Loading...</td>
+                </tr>
+              ) : !selectedProject ? (
+                <tr>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                    Silakan pilih proyek terlebih dahulu.
+                  </td>
+                </tr>
+              ) : workers.length === 0 ? (
+                <tr>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                    Tidak ada pekerja yang ditugaskan di proyek ini.
+                  </td>
+                </tr>
+              ) : (
+                workers.map((worker) => (
+                  <tr key={worker.worker_id}>
+                    <td>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
+                        {worker.worker_name}
+                        {worker.already_attended && (
+                          <span
+                            style={{
+                              background: "#22c55e",
+                              color: "white",
+                              fontSize: "11px",
+                              padding: "2px 8px",
+                              borderRadius: "999px",
+                            }}
+                          >
+                            Sudah Diabsen
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        {worker.position || "-"}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="radio-group">
+                        {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
+                          <label
+                            key={status}
+                            className={`radio-label ${
+                              attendance[worker.worker_id]?.status === status
+                                ? status === "alpha"
+                                  ? "selected danger"
+                                  : "selected"
+                                : ""
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              disabled={worker.already_attended}
+                              name={`status-${worker.worker_id}`}
+                              checked={attendance[worker.worker_id]?.status === status}
+                              onChange={() => handleStatusChange(worker.worker_id, status)}
+                            />
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </label>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        disabled={worker.already_attended}
+                        placeholder="Tambahkan catatan..."
+                        className="input-field"
+                        value={attendance[worker.worker_id]?.note || ""}
+                        onChange={(e) => handleNoteChange(worker.worker_id, e.target.value)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
-
-      {/* Loading */}
-      {loadingWorkers && (
-        <div className="card flex items-center justify-center py-14">
-          <div className="flex items-center gap-2.5 text-stone-400">
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-            <span className="text-sm font-medium">Memuat data pekerja...</span>
-          </div>
-        </div>
-      )}
-
-      {!loadingWorkers && workers.length > 0 && (
-        <div className="card p-0 overflow-hidden">
-          {/* Toolbar: isi semua */}
-          <div className="px-4 py-3 border-b border-stone-100 flex flex-wrap items-center gap-2 justify-between">
-            <span className="text-sm font-medium text-stone-600">{workers.length} pekerja</span>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-stone-400 hidden sm:inline">Isi semua:</span>
-              {STATUS_OPTIONS.map(s => (
-                <button key={s} onClick={() => { const a: Record<number,AttendanceStatus> = {}; workers.forEach(w => a[w.worker_id]=s); setStatuses(a); }}
-                  className={`text-xs px-3 py-1.5 rounded-full font-semibold border-2 transition-all ${STATUS_COLORS[s]}`}>
-                  {STATUS_LABELS[s]}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Worker rows — stacked on mobile, table-like on sm+ */}
-          <div className="divide-y divide-stone-100">
-            {workers.map(w => (
-              <div key={w.worker_id} className="px-4 py-3.5">
-                {/* Name + position row */}
-                <div className="flex items-center justify-between mb-2.5">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-900 truncate">{w.worker_name}</p>
-                    <p className="text-xs text-stone-400 mt-0.5">{w.position}</p>
-                  </div>
-                </div>
-                {/* Status buttons — 2x2 grid on xs, single row on sm */}
-                <div className="grid grid-cols-2 sm:flex gap-2" role="group" aria-label={`Status ${w.worker_name}`}>
-                  {STATUS_OPTIONS.map(s => (
-                    <button key={s} type="button"
-                      onClick={() => setStatuses(prev => ({ ...prev, [w.worker_id]: s }))}
-                      className={`text-xs py-2 px-3 rounded-xl font-semibold border-2 transition-all
-                        ${statuses[w.worker_id] === s ? STATUS_COLORS[s] : STATUS_COLORS_INACTIVE}`}
-                      aria-pressed={statuses[w.worker_id] === s}>
-                      {STATUS_LABELS[s]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Footer save */}
-          <div className="px-4 py-3.5 border-t border-stone-100 flex items-center justify-between bg-stone-50/50">
-            {saved && (
-              <span className="text-sm text-emerald-600 font-semibold flex items-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
-                </svg>
-                Tersimpan
-              </span>
-            )}
-            {!saved && <div/>}
-            <button onClick={handleSave} disabled={saving || !allFilled}
-              className="btn-primary ml-auto">
-              {saving ? "Menyimpan..." : "Simpan Absensi"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!loadingWorkers && workers.length === 0 && selectedProject > 0 && (
-        <div className="card text-center py-14 text-stone-400 text-sm">
-          Tidak ada pekerja aktif di proyek ini
-        </div>
-      )}
     </div>
   );
 }
