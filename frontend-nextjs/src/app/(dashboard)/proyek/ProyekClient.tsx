@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Edit2, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface ProjectRow {
   id: number;
@@ -16,7 +18,6 @@ interface ProjectRow {
   updatedAt: string;
 }
 
-// Form untuk TAMBAH: deskripsi ada, start_date otomatis server, end_date tidak ada
 interface AddForm {
   name: string;
   location: string;
@@ -24,7 +25,6 @@ interface AddForm {
   is_active: boolean;
 }
 
-// Form untuk EDIT: semua kolom bisa diubah termasuk start_date dan end_date
 interface EditForm {
   name: string;
   location: string;
@@ -47,29 +47,36 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
   const [projects, setProjects] = useState(initialProjects);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  // ─── State modal tambah ───────────────────────────────────────────────────
+  // ─── Modal Tambah State ──────────────────────────────────────────────────
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState<AddForm>(emptyAddForm);
   const [addLoading, setAddLoading] = useState(false);
 
-  // ─── State modal edit ─────────────────────────────────────────────────────
+  // ─── Modal Edit State ────────────────────────────────────────────────────
   const [showEditModal, setShowEditModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<EditForm>({
-    name: "", location: "", description: "",
-    start_date: "", end_date: "", is_active: true,
+    name: "",
+    location: "",
+    description: "",
+    start_date: "",
+    end_date: "",
+    is_active: true,
   });
   const [editLoading, setEditLoading] = useState(false);
 
-  // ─── Helper format tanggal ke dd/mm/yyyy ─────────────────────────────────
+  const currentYear = new Date().getFullYear();
+  const activeCount = projects.filter((p) => p.isActive).length;
+  const completedCount = projects.length - activeCount;
+
   function fmtDate(dateStr: string | null): string {
     if (!dateStr) return "-";
     const [y, m, d] = dateStr.split("-");
     return `${d}/${m}/${y}`;
   }
 
-  // ─── Tambah proyek ────────────────────────────────────────────────────────
-  function openAdd() {
+  // ─── Handlers ─────────────────────────────────────────────────────────────
+  function openAddModal() {
     setAddForm(emptyAddForm);
     setShowAddModal(true);
   }
@@ -85,7 +92,6 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
           name: addForm.name,
           location: addForm.location,
           description: addForm.description || null,
-          // start_date TIDAK dikirim — server yang auto-isi dengan new Date()
           is_active: addForm.is_active,
         }),
       });
@@ -99,7 +105,7 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
       const { data } = await res.json();
       setProjects((prev) => [data, ...prev]);
       setShowAddModal(false);
-      toast.success(`Proyek "${addForm.name}" berhasil ditambahkan`);
+      toast.success(`Proyek "${addForm.name}" berhasil ditambahkan.`);
       router.refresh();
     } catch {
       toast.error("Tidak dapat terhubung ke server");
@@ -108,8 +114,7 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
     }
   }
 
-  // ─── Edit proyek ──────────────────────────────────────────────────────────
-  function openEdit(p: ProjectRow) {
+  function openEditModal(p: ProjectRow) {
     setEditId(p.id);
     setEditForm({
       name: p.name,
@@ -149,7 +154,7 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
       const { data } = await res.json();
       setProjects((prev) => prev.map((p) => (p.id === editId ? data : p)));
       setShowEditModal(false);
-      toast.success(`Proyek "${editForm.name}" berhasil diperbarui`);
+      toast.success(`Proyek "${editForm.name}" berhasil diperbarui.`);
       router.refresh();
     } catch {
       toast.error("Tidak dapat terhubung ke server");
@@ -158,14 +163,21 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
     }
   }
 
-  // ─── Hapus proyek ─────────────────────────────────────────────────────────
-  async function handleDelete(id: number) {
+  async function handleDelete(id: number, name: string) {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus proyek "${name}"? Data yang dihapus tidak dapat dikembalikan.`)) {
+      return;
+    }
+
     setDeleteId(id);
     try {
       const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
-      if (!res.ok) { toast.error("Gagal menghapus proyek"); return; }
+      if (!res.ok) {
+        toast.error("Gagal menghapus proyek");
+        return;
+      }
       setProjects((prev) => prev.filter((p) => p.id !== id));
-      toast.success("Proyek berhasil dihapus");
+      toast.success(`Proyek "${name}" berhasil dihapus.`);
+      router.refresh();
     } catch {
       toast.error("Tidak dapat terhubung ke server");
     } finally {
@@ -173,75 +185,84 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
     }
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
-  return (
-    <div className="space-y-5">
+  const getStatusBadge = (project: ProjectRow) => {
+    if (!project.isActive) {
+      return <span className="badge" style={{ backgroundColor: "#e2e8f0", color: "#475569" }}>Selesai</span>;
+    }
+    return <span className="badge" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>Aktif</span>;
+  };
 
-      {/* Page header */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="page-title">Proyek</h1>
-          <p className="page-subtitle">Kelola data proyek konstruksi</p>
+  return (
+    <div className="page-container">
+      {/* Toolbar */}
+      <div className="page-toolbar">
+        <div className="page-toolbar-left">
+          <div style={{ display: "flex", gap: "20px" }}>
+            <div>
+              <div style={{ fontSize: "24px", fontWeight: 700 }}>{activeCount}</div>
+              <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Proyek Aktif</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "24px", fontWeight: 700 }}>{completedCount}</div>
+              <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>Proyek Selesai</div>
+            </div>
+          </div>
         </div>
-        <button onClick={openAdd} className="btn-primary flex-shrink-0">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          <span className="hidden sm:inline">Tambah Proyek</span>
-          <span className="sm:hidden">Tambah</span>
-        </button>
+        <div className="page-toolbar-right">
+          <button className="btn-primary" style={{ padding: "10px 20px", borderRadius: "8px" }} onClick={openAddModal}>
+            + Tambah Proyek Baru
+          </button>
+        </div>
       </div>
 
-      {/* ── Desktop: tabel ── */}
-      <div className="hidden sm:block card p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="table-base" aria-label="Daftar proyek">
-            <thead className="table-head">
+      {/* Tabel Proyek */}
+      <div className="card" style={{ padding: "0" }}>
+        <div className="table-container">
+          <table className="table" style={{ minWidth: "650px" }}>
+            <thead>
               <tr>
-                <th className="table-th">Nama Proyek</th>
-                <th className="table-th">Lokasi</th>
-                <th className="table-th">Deskripsi</th>
-                <th className="table-th">Tgl Mulai</th>
-                <th className="table-th">Tgl Selesai</th>
-                <th className="table-th">Status</th>
-                <th className="table-th">Aksi</th>
+                <th>Nama Proyek</th>
+                <th>Lokasi</th>
+                <th>Deskripsi</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody>
               {projects.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="table-td text-center text-stone-400 py-10">
-                    Belum ada data proyek
+                  <td colSpan={5} style={{ textAlign: "center", padding: "24px" }}>
+                    Belum ada data proyek. Silakan tambahkan proyek baru.
                   </td>
                 </tr>
               ) : (
-                projects.map((p) => (
-                  <tr key={p.id} className="table-row">
-                    <td className="table-td font-semibold">{p.name}</td>
-                    <td className="table-td text-stone-500">{p.location}</td>
-                    <td className="table-td text-stone-500 max-w-[180px]">
-                      <span className="truncate block" title={p.description ?? undefined}>
-                        {p.description || <span className="text-stone-300 italic">-</span>}
+                projects.map((project) => (
+                  <tr key={project.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--text-main)" }}>{project.name}</div>
+                      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                        ID: PROJ-{currentYear}-{String(project.id).padStart(3, "0")}
+                      </div>
+                    </td>
+                    <td style={{ color: "var(--text-muted)" }}>{project.location}</td>
+                    <td style={{ color: "var(--text-muted)", maxWidth: "200px" }}>
+                      <span className="truncate block" title={project.description ?? undefined}>
+                        {project.description || <span style={{ color: "var(--text-light)", fontStyle: "italic" }}>-</span>}
                       </span>
                     </td>
-                    <td className="table-td text-stone-500">{fmtDate(p.startDate)}</td>
-                    <td className="table-td text-stone-500">{fmtDate(p.endDate)}</td>
-                    <td className="table-td">
-                      <span className={p.isActive ? "badge-hadir" : "badge-alpha"}>
-                        {p.isActive ? "Aktif" : "Selesai"}
-                      </span>
-                    </td>
-                    <td className="table-td">
-                      <div className="flex gap-3">
-                        <button onClick={() => openEdit(p)}
-                          className="text-amber-600 hover:text-amber-700 text-sm font-semibold"
-                          aria-label={`Edit ${p.name}`}>
-                          Edit
+                    <td>{getStatusBadge(project)}</td>
+                    <td>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button style={{ color: "var(--text-muted)" }} title="Edit" onClick={() => openEditModal(project)}>
+                          <Edit2 size={18} />
                         </button>
-                        <button onClick={() => handleDelete(p.id)} disabled={deleteId === p.id}
-                          className="text-red-500 hover:text-red-700 text-sm font-semibold disabled:opacity-40"
-                          aria-label={`Hapus ${p.name}`}>
-                          {deleteId === p.id ? "..." : "Hapus"}
+                        <button
+                          style={{ color: "var(--danger)" }}
+                          title="Hapus"
+                          disabled={deleteId === project.id}
+                          onClick={() => handleDelete(project.id, project.name)}
+                        >
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </td>
@@ -253,257 +274,171 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
         </div>
       </div>
 
-      {/* ── Mobile: card list ── */}
-      <div className="sm:hidden space-y-3">
-        {projects.length === 0 ? (
-          <div className="card text-center py-10 text-stone-400">Belum ada data proyek</div>
-        ) : (
-          projects.map((p) => (
-            <div key={p.id} className="card space-y-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="font-semibold text-stone-900 truncate">{p.name}</p>
-                  <p className="text-sm text-stone-500 mt-0.5 truncate">{p.location}</p>
-                </div>
-                <span className={`flex-shrink-0 ${p.isActive ? "badge-hadir" : "badge-alpha"}`}>
-                  {p.isActive ? "Aktif" : "Selesai"}
-                </span>
-              </div>
-
-              {p.description && (
-                <p className="text-xs text-stone-500 leading-relaxed line-clamp-2">{p.description}</p>
-              )}
-
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <span className="text-stone-400">Mulai</span>
-                  <p className="font-medium text-stone-700">{fmtDate(p.startDate)}</p>
-                </div>
-                <div>
-                  <span className="text-stone-400">Selesai</span>
-                  <p className="font-medium text-stone-700">{fmtDate(p.endDate)}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-1 border-t border-stone-100">
-                <button onClick={() => openEdit(p)}
-                  className="flex-1 text-center text-sm font-semibold text-amber-600 hover:text-amber-700 py-1">
-                  Edit
-                </button>
-                <div className="w-px bg-stone-100" />
-                <button onClick={() => handleDelete(p.id)} disabled={deleteId === p.id}
-                  className="flex-1 text-center text-sm font-semibold text-red-500 hover:text-red-700 py-1 disabled:opacity-40">
-                  {deleteId === p.id ? "..." : "Hapus"}
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* ════════════════════════════════════════════════
-          MODAL TAMBAH PROYEK
-          - Kolom: Nama, Lokasi, Deskripsi, Status
-          - start_date otomatis dari server
-          - end_date tidak ada saat tambah
-         ════════════════════════════════════════════════ */}
+      {/* ── Modal Tambah Proyek Baru ── */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => !addLoading && setShowAddModal(false)} aria-hidden="true" />
-          <div className="relative bg-white w-full sm:max-w-md z-10
-                          rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[92dvh] flex flex-col">
-
-            {/* Header */}
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
-              <div>
-                <h2 className="text-base font-bold text-stone-900">Tambah Proyek</h2>
-                <p className="text-xs text-stone-400 mt-0.5">Tanggal mulai otomatis hari ini</p>
-              </div>
-              <button onClick={() => setShowAddModal(false)} className="btn-ghost p-1" aria-label="Tutup">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <h2>Tambah Proyek Baru</h2>
+              <button onClick={() => setShowAddModal(false)} style={{ color: "var(--text-muted)" }}>
+                <X size={20} />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="overflow-y-auto flex-1">
-              <form id="add-proyek-form" onSubmit={handleAdd} className="modal-body">
-
-                {/* Nama */}
-                <div>
-                  <label htmlFor="add-name" className="input-label">Nama Proyek *</label>
-                  <input id="add-name" type="text" className="input-field" required
-                    placeholder="contoh: Pembangunan Gedung A"
+            <form onSubmit={handleAdd}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Nama Proyek</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    required
+                    placeholder="Contoh: Pembangunan Ruko Graha"
                     value={addForm.name}
-                    onChange={(e) => setAddForm({ ...addForm, name: e.target.value })} />
+                    onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                  />
                 </div>
 
-                {/* Lokasi */}
-                <div>
-                  <label htmlFor="add-location" className="input-label">Lokasi *</label>
-                  <input id="add-location" type="text" className="input-field" required
-                    placeholder="contoh: Jl. Sudirman No. 10, Jakarta"
+                <div className="form-group">
+                  <label>Lokasi</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    required
+                    placeholder="Contoh: Jl. Ahmad Yani No. 12"
                     value={addForm.location}
-                    onChange={(e) => setAddForm({ ...addForm, location: e.target.value })} />
+                    onChange={(e) => setAddForm({ ...addForm, location: e.target.value })}
+                  />
                 </div>
 
-                {/* Deskripsi */}
-                <div>
-                  <label htmlFor="add-desc" className="input-label">
-                    Deskripsi
-                    <span className="text-stone-300 font-normal ml-1">(opsional)</span>
-                  </label>
-                  <textarea id="add-desc" className="input-field resize-none" rows={3}
-                    placeholder="Deskripsikan proyek secara singkat..."
+                <div className="form-group">
+                  <label>Deskripsi (Opsional)</label>
+                  <textarea
+                    className="input-field"
+                    rows={3}
+                    placeholder="Catatan tambahan mengenai proyek..."
                     value={addForm.description}
-                    onChange={(e) => setAddForm({ ...addForm, description: e.target.value })} />
+                    onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
+                  />
                 </div>
 
-                {/* Info start_date otomatis */}
-                <div className="flex items-center gap-2.5 bg-amber-50 border border-amber-200
-                                rounded-xl px-4 py-3">
-                  <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-xs text-amber-700">
-                    <span className="font-semibold">Tanggal mulai</span> otomatis diisi hari ini.
-                    Tanggal selesai dapat diatur setelah proyek dibuat.
-                  </p>
-                </div>
-
-                {/* Status */}
-                <div>
-                  <label htmlFor="add-status" className="input-label">Status</label>
-                  <select id="add-status" className="input-field"
+                <div className="form-group">
+                  <label>Status</label>
+                  <CustomSelect
                     value={addForm.is_active ? "true" : "false"}
-                    onChange={(e) => setAddForm({ ...addForm, is_active: e.target.value === "true" })}>
-                    <option value="true">Aktif</option>
-                    <option value="false">Selesai</option>
-                  </select>
+                    onChange={(val) => setAddForm({ ...addForm, is_active: val === "true" })}
+                    options={[
+                      { value: "true", label: "Aktif" },
+                      { value: "false", label: "Selesai" },
+                    ]}
+                  />
                 </div>
+              </div>
 
-              </form>
-            </div>
-
-            {/* Footer */}
-            <div className="modal-footer">
-              <button type="button" onClick={() => setShowAddModal(false)}
-                disabled={addLoading} className="btn-secondary">
-                Batal
-              </button>
-              <button type="submit" form="add-proyek-form" disabled={addLoading} className="btn-primary">
-                {addLoading ? "Menyimpan..." : "Tambah Proyek"}
-              </button>
-            </div>
-
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowAddModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary" disabled={addLoading}>
+                  {addLoading ? "Menyimpan..." : "Simpan Proyek"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════
-          MODAL EDIT PROYEK
-          - Kolom: Nama, Lokasi, Deskripsi, Tgl Mulai, Tgl Selesai, Status
-          - Semua bisa diedit
-         ════════════════════════════════════════════════ */}
+      {/* ── Modal Edit Proyek ── */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => !editLoading && setShowEditModal(false)} aria-hidden="true" />
-          <div className="relative bg-white w-full sm:max-w-md z-10
-                          rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[92dvh] flex flex-col">
-
-            {/* Header */}
+        <div className="modal-overlay">
+          <div className="modal-content">
             <div className="modal-header">
-              <h2 className="text-base font-bold text-stone-900">Edit Proyek</h2>
-              <button onClick={() => setShowEditModal(false)} className="btn-ghost p-1" aria-label="Tutup">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <h2>Edit Proyek</h2>
+              <button onClick={() => setShowEditModal(false)} style={{ color: "var(--text-muted)" }}>
+                <X size={20} />
               </button>
             </div>
 
-            {/* Body */}
-            <div className="overflow-y-auto flex-1">
-              <form id="edit-proyek-form" onSubmit={handleEdit} className="modal-body">
-
-                {/* Nama */}
-                <div>
-                  <label htmlFor="edit-name" className="input-label">Nama Proyek *</label>
-                  <input id="edit-name" type="text" className="input-field" required
+            <form onSubmit={handleEdit}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Nama Proyek</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    required
                     value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  />
                 </div>
 
-                {/* Lokasi */}
-                <div>
-                  <label htmlFor="edit-location" className="input-label">Lokasi *</label>
-                  <input id="edit-location" type="text" className="input-field" required
+                <div className="form-group">
+                  <label>Lokasi</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    required
                     value={editForm.location}
-                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} />
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                  />
                 </div>
 
-                {/* Deskripsi */}
-                <div>
-                  <label htmlFor="edit-desc" className="input-label">
-                    Deskripsi
-                    <span className="text-stone-300 font-normal ml-1">(opsional)</span>
-                  </label>
-                  <textarea id="edit-desc" className="input-field resize-none" rows={3}
-                    placeholder="Deskripsikan proyek secara singkat..."
+                <div className="form-group">
+                  <label>Deskripsi (Opsional)</label>
+                  <textarea
+                    className="input-field"
+                    rows={3}
                     value={editForm.description}
-                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  />
                 </div>
 
-                {/* Tanggal Mulai & Selesai — berdampingan */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="edit-start" className="input-label">Tanggal Mulai</label>
-                    <input id="edit-start" type="date" className="input-field"
+                <div style={{ display: "flex", gap: "16px" }}>
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Tgl Mulai</label>
+                    <input
+                      type="date"
+                      className="input-field"
                       value={editForm.start_date}
-                      onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })} />
+                      onChange={(e) => setEditForm({ ...editForm, start_date: e.target.value })}
+                    />
                   </div>
-                  <div>
-                    <label htmlFor="edit-end" className="input-label">Tanggal Selesai</label>
-                    <input id="edit-end" type="date" className="input-field"
-                      min={editForm.start_date || undefined}
+                  <div className="form-group" style={{ flex: 1 }}>
+                    <label>Tgl Selesai</label>
+                    <input
+                      type="date"
+                      className="input-field"
                       value={editForm.end_date}
-                      onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })} />
+                      onChange={(e) => setEditForm({ ...editForm, end_date: e.target.value })}
+                    />
                   </div>
                 </div>
 
-                {/* Status */}
-                <div>
-                  <label htmlFor="edit-status" className="input-label">Status</label>
-                  <select id="edit-status" className="input-field"
+                <div className="form-group">
+                  <label>Status</label>
+                  <CustomSelect
                     value={editForm.is_active ? "true" : "false"}
-                    onChange={(e) => setEditForm({ ...editForm, is_active: e.target.value === "true" })}>
-                    <option value="true">Aktif</option>
-                    <option value="false">Selesai</option>
-                  </select>
+                    onChange={(val) => setEditForm({ ...editForm, is_active: val === "true" })}
+                    options={[
+                      { value: "true", label: "Aktif" },
+                      { value: "false", label: "Selesai" },
+                    ]}
+                  />
                 </div>
+              </div>
 
-              </form>
-            </div>
-
-            {/* Footer */}
-            <div className="modal-footer">
-              <button type="button" onClick={() => setShowEditModal(false)}
-                disabled={editLoading} className="btn-secondary">
-                Batal
-              </button>
-              <button type="submit" form="edit-proyek-form" disabled={editLoading} className="btn-primary">
-                {editLoading ? "Menyimpan..." : "Simpan Perubahan"}
-              </button>
-            </div>
-
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary" disabled={editLoading}>
+                  {editLoading ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }
