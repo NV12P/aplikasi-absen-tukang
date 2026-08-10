@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserPlus, Edit2, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/Toast";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
@@ -18,16 +17,8 @@ interface WorkerRow {
   position: { id: number; name: string; dailyWage: number } | null;
 }
 
-interface ProjectOption {
-  id: number;
-  name: string;
-}
-
-interface PositionOption {
-  id: number;
-  name: string;
-  dailyWage: number;
-}
+interface ProjectOption { id: number; name: string }
+interface PositionOption { id: number; name: string; dailyWage: number }
 
 const emptyForm = {
   name: "",
@@ -84,17 +75,12 @@ export function PekerjaClient({
   }
 
   async function handleDelete(id: number, name: string) {
-    if (!window.confirm(`Apakah Anda yakin ingin menghapus pekerja "${name}"? Data pekerja ini beserta riwayatnya akan dihapus.`)) {
-      return;
-    }
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus pekerja "${name}"?`)) return;
 
     setDeleteId(id);
     try {
       const res = await fetch(`/api/workers/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        toast.error("Gagal menghapus pekerja");
-        return;
-      }
+      if (!res.ok) { toast.error("Gagal menghapus pekerja"); return; }
       setWorkers((prev) => prev.filter((w) => w.id !== id));
       toast.success(`Pekerja "${name}" berhasil dihapus.`);
       router.refresh();
@@ -172,15 +158,20 @@ export function PekerjaClient({
         <div className="page-toolbar-right">
           <button
             className="btn-primary"
-            style={{ padding: "10px 20px", borderRadius: "8px" }}
+            style={{ padding: "10px 20px", borderRadius: "8px", display: "flex", alignItems: "center", gap: "8px" }}
             onClick={openAddModal}
           >
-            <UserPlus size={18} />
+            {/* icon: user-plus */}
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
             <span>Tambah Pekerja</span>
           </button>
         </div>
       </div>
 
+      {/* Tabel */}
       <div className="card" style={{ padding: "0" }}>
         <div className="table-container">
           <table className="table" style={{ minWidth: "600px" }}>
@@ -223,7 +214,11 @@ export function PekerjaClient({
                     <td>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button style={{ color: "var(--text-muted)" }} title="Edit" onClick={() => openEditModal(worker)}>
-                          <Edit2 size={18} />
+                          {/* icon: edit */}
+                          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
                         </button>
                         <button
                           style={{ color: "var(--danger)" }}
@@ -231,7 +226,11 @@ export function PekerjaClient({
                           disabled={deleteId === worker.id}
                           onClick={() => handleDelete(worker.id, worker.name)}
                         >
-                          <Trash2 size={18} />
+                          {/* icon: trash */}
+                          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -243,14 +242,17 @@ export function PekerjaClient({
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal Tambah / Edit */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
               <h2>{editingWorker ? "Edit Pekerja" : "Tambah Pekerja Baru"}</h2>
               <button onClick={() => setIsModalOpen(false)} style={{ color: "var(--text-muted)" }}>
-                <X size={20} />
+                {/* icon: X */}
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
