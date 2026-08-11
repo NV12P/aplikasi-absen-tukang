@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { AttendanceStatus } from "@prisma/client";
 import { useToast } from "@/components/ui/Toast";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -34,6 +35,7 @@ function formatDate(date: Date): string {
 
 export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) {
   const toast = useToast();
+  const router = useRouter();
   const [selectedProject, setSelectedProject] = useState<string>("");
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [attendance, setAttendance] = useState<Record<number, WorkerAttendanceState>>({});
@@ -136,6 +138,8 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         const { data } = await updatedRes.json();
         setWorkers(data);
       }
+      
+      router.refresh(); // Auto-refresh untuk update UI
     } catch (err: any) {
       toast.error(err.message || "Gagal menyimpan absensi");
     } finally {

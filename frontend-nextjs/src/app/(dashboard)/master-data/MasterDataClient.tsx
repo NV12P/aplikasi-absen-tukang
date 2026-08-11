@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 
 interface Position {
@@ -20,6 +21,7 @@ interface FormData {
 
 export function MasterDataClient() {
   const toast = useToast();
+  const router = useRouter();
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -92,7 +94,8 @@ export function MasterDataClient() {
 
       toast.success(editingId ? "Jabatan berhasil diupdate" : "Jabatan berhasil ditambahkan");
       setShowModal(false);
-      loadPositions();
+      await loadPositions();
+      router.refresh(); // Auto-refresh untuk update UI
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan");
     } finally {
@@ -113,7 +116,8 @@ export function MasterDataClient() {
       }
 
       toast.success("Jabatan berhasil dihapus");
-      loadPositions();
+      await loadPositions();
+      router.refresh(); // Auto-refresh untuk update UI
     } catch (err: any) {
       toast.error(err.message || "Gagal menghapus jabatan");
     } finally {
