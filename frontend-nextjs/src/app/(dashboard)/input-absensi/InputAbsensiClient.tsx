@@ -24,6 +24,14 @@ interface WorkerAttendanceState {
   note: string;
 }
 
+// Helper: format tanggal ke format Indonesia
+function formatDate(date: Date): string {
+  const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const dayName = dayNames[date.getDay()];
+  const dateStr = date.toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+  return `${dayName}, ${dateStr}`;
+}
+
 export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) {
   const toast = useToast();
   const [selectedProject, setSelectedProject] = useState<string>("");
@@ -31,6 +39,13 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   const [attendance, setAttendance] = useState<Record<number, WorkerAttendanceState>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Hari dan tanggal saat ini
+  const [todayDate, setTodayDate] = useState<string>("");
+
+  useEffect(() => {
+    setTodayDate(formatDate(new Date()));
+  }, []);
 
   useEffect(() => {
     async function loadWorkers() {
@@ -130,11 +145,50 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
     }
   }
 
+  const hasUnsavedChanges = workers.some(
+    (w) => !w.already_attended && attendance[w.worker_id]?.status !== w.current_status
+  );
+
   return (
     <div className="page-container">
-      {/* Toolbar */}
+      {/* Toolbar dengan Hari & Tanggal */}
       <div className="page-toolbar">
         <div className="page-toolbar-left">
+          {/* Card Hari & Tanggal */}
+          <div
+            className="flex items-center gap-3"
+            style={{
+              padding: "10px 16px",
+              backgroundColor: "#f8fafc",
+              borderRadius: "8px",
+              border: "1px solid #e2e8f0",
+              marginRight: "16px",
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <div>
+              <p
+                style={{
+                  fontSize: "12px",
+                  color: "#64748b",
+                  margin: "0 0 2px 0",
+                  fontWeight: 500,
+                }}
+              >
+                {todayDate}
+              </p>
+            </div>
+          </div>
+
           <CustomSelect
             value={selectedProject}
             onChange={(val) => setSelectedProject(val)}
@@ -151,7 +205,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
             className="btn-primary"
             style={{ padding: "10px 24px", borderRadius: "8px" }}
             onClick={handleSave}
-            disabled={submitting || !selectedProject || workers.length === 0}
+            disabled={submitting || !selectedProject || workers.length === 0 || !hasUnsavedChanges}
           >
             {submitting ? "Menyimpan..." : "Simpan Absensi"}
           </button>
@@ -187,66 +241,99 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                   </td>
                 </tr>
               ) : (
-                workers.map((worker) => (
-                  <tr key={worker.worker_id}>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
-                        {worker.worker_name}
-                        {worker.already_attended && (
-                          <span
-                            style={{
-                              background: "#22c55e",
-                              color: "white",
-                              fontSize: "11px",
-                              padding: "2px 8px",
-                              borderRadius: "999px",
-                            }}
-                          >
-                            Sudah Diabsen
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                        {worker.position || "-"}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="radio-group">
-                        {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
-                          <label
-                            key={status}
-                            className={`radio-label ${
-                              attendance[worker.worker_id]?.status === status
-                                ? status === "alpha"
-                                  ? "selected danger"
-                                  : "selected"
-                                : ""
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              disabled={worker.already_attended}
-                              name={`status-${worker.worker_id}`}
-                              checked={attendance[worker.worker_id]?.status === status}
-                              onChange={() => handleStatusChange(worker.worker_id, status)}
-                            />
-                            {status.charAt(0).toUpperCase() + status.slice(1)}
-                          </label>
-                        ))}
-                      </div>
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        disabled={worker.already_attended}
-                        placeholder="Tambahkan catatan..."
-                        className="input-field"
-                        value={attendance[worker.worker_id]?.note || ""}
-                        onChange={(e) => handleNoteChange(worker.worker_id, e.target.value)}
-                      />
-                    </td>
-                  </tr>
-                ))
+                workers.map((worker) => {
+                  const isAlreadyAttended = !!worker.already_attended;
+                  const currentStatus = attendance[worker.worker_id]?.status || "hadir";
+
+                  return (
+                    <tr key={worker.worker_id}>
+                      <td>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {worker.worker_name}
+                          {isAlreadyAttended && (
+                            <span
+                              style={{
+                                background: "#16a34a",
+                                color: "white",
+                                fontSize: "11px",
+                                padding: "2px 8px",
+                                borderRadius: "999px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontWeight: 600,
+                              }}
+                            >
+                              <svg
+                                width="10"
+                                height="10"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                              Sudah Diabsen
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
+                          {worker.position || "-"}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="radio-group">
+                          {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
+                            <label
+                              key={status}
+                              className={`radio-label ${
+                                currentStatus === status
+                                  ? status === "alpha"
+                                    ? "selected danger"
+                                    : "selected"
+                                  : ""
+                              }`}
+                              style={{ opacity: isAlreadyAttended ? 0.5 : 1 }}
+                            >
+                              <input
+                                type="radio"
+                                disabled={isAlreadyAttended}
+                                name={`status-${worker.worker_id}`}
+                                checked={currentStatus === status}
+                                onChange={() => handleStatusChange(worker.worker_id, status)}
+                              />
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </label>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          disabled={isAlreadyAttended}
+                          placeholder="Tambahkan catatan..."
+                          className="input-field"
+                          value={attendance[worker.worker_id]?.note || ""}
+                          onChange={(e) => handleNoteChange(worker.worker_id, e.target.value)}
+                          style={{ opacity: isAlreadyAttended ? 0.6 : 1 }}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

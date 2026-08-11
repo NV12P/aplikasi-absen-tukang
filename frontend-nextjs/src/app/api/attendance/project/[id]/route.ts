@@ -31,6 +31,7 @@ export const GET = apiHandler(async (req: NextRequest, { params }: Params) => {
     worker_name: w.name,
     position: w.position?.name ?? "-",
     current_status: w.attendances[0]?.status ?? null,
+    already_attended: w.attendances.length > 0,
   }));
 
   return NextResponse.json({ data });
