@@ -26,7 +26,10 @@ export const GET = apiHandler(async () => {
     orderBy: { name: "asc" },
   });
 
-  return NextResponse.json({ data: serializeBigInt(workers) });
+  const res = NextResponse.json({ data: serializeBigInt(workers) });
+  // Cache 30 detik di browser, stale 60 detik di background
+  res.headers.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
+  return res;
 });
 
 export const POST = apiHandler(async (req: NextRequest) => {

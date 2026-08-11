@@ -10,17 +10,29 @@ export const GET = apiHandler(async () => {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
 
-  const [todayAttendances, totalWorkers, totalProjects, activeProjects, activeWorkers] =
-    await Promise.all([
-      prisma.attendance.findMany({
-        where: { date: today },
-        select: { status: true, wage: true },
-      }),
-      prisma.worker.count(),
-      prisma.project.count(),
-      prisma.project.count({ where: { isActive: true } }),
-      prisma.worker.count({ where: { isActive: true } }),
-    ]);
+  // 3 query paralel (sebelumnya 5) — workers & projects digabung pakai groupBy isActive
+  const [todayAttendances, workerStats, projectStats] = await Promise.all([
+    prisma.attendance.findMany({
+      where: { date: today },
+      select: { status: true, wage: true },
+    }),
+    // 1 query untuk total + active workers sekaligus
+    prisma.worker.groupBy({
+      by: ["isActive"],
+      _count: { id: true },
+    }),
+    // 1 query untuk total + active projects sekaligus
+    prisma.project.groupBy({
+      by: ["isActive"],
+      _count: { id: true },
+    }),
+  ]);
+
+  // Hitung stats dari groupBy result
+  const totalWorkers = workerStats.reduce((sum, g) => sum + g._count.id, 0);
+  const activeWorkers = workerStats.find((g) => g.isActive === true)?._count.id ?? 0;
+  const totalProjects = projectStats.reduce((sum, g) => sum + g._count.id, 0);
+  const activeProjects = projectStats.find((g) => g.isActive === true)?._count.id ?? 0;
 
   const todayStats = todayAttendances.reduce(
     (acc, a) => {

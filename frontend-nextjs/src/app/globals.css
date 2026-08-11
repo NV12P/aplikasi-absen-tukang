@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap');
 
 :root {
   --primary: #f2c700;
@@ -658,6 +658,27 @@ ul {
   flex-wrap: wrap;
 }
 
+/* ─── Toolbar Date Card ──────────────────────────────────────────────────────── */
+
+/* Desktop: sejajar di samping kanan dropdown (default, tidak ada perubahan) */
+.toolbar-date-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+/* Mobile: turun ke baris bawah, lebar penuh mengikuti kolom */
+@media (max-width: 768px) {
+  .toolbar-date-card {
+    width: 100%;
+  }
+}
+
 /* ─── Rekap Summary Grid Class ────────────────────────────────────────────────── */
 
 .rekap-summary-grid {
@@ -1057,3 +1078,127 @@ ul {
   text-align: center;
 }
 
+
+/* ─── Login Page ─────────────────────────────────────────────────────────────── */
+
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.login-branding {
+  flex: 0 0 52%;
+  max-width: 860px;
+  background: linear-gradient(135deg, #f2c700 0%, #d97706 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 80px;
+  color: #1a1a1a;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-branding::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  left: -80px;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.login-branding::after {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  right: -60px;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+}
+
+.login-branding h1 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-branding p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.65;
+  position: relative;
+  z-index: 1;
+}
+
+.login-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-page);
+  padding: 40px 48px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+@keyframes login-spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-spinner {
+  animation: login-spin 0.8s linear infinite;
+}
+
+@media (max-width: 1280px) {
+  .login-branding {
+    padding: 60px 60px;
+  }
+
+  .login-branding h1 {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .login-branding {
+    flex: 0 0 48%;
+    padding: 48px 48px;
+  }
+
+  .login-branding h1 {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-branding {
+    display: none;
+  }
+
+  .login-form-wrapper {
+    padding: 24px 16px;
+  }
+
+  .login-card {
+    max-width: 100%;
+  }
+}

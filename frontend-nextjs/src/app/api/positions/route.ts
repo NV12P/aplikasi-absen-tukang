@@ -17,7 +17,10 @@ export const GET = apiHandler(async () => {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const positions = await prisma.position.findMany({ orderBy: { name: "asc" } });
-  return NextResponse.json({ data: serializeBigInt(positions) });
+  const res = NextResponse.json({ data: serializeBigInt(positions) });
+  // Posisi jarang berubah — cache lebih lama: 60 detik, stale 120 detik
+  res.headers.set("Cache-Control", "private, max-age=60, stale-while-revalidate=120");
+  return res;
 });
 
 export const POST = apiHandler(async (req: NextRequest) => {

@@ -5,46 +5,58 @@ export default async function DashboardPage() {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
 
-  const [totalProjects, totalWorkers, todayAttendances, rawActiveProjects] = await Promise.all([
-    prisma.project.count(),
-    prisma.worker.count(),
-    prisma.attendance.findMany({
-      where: { date: today },
-      select: { status: true },
-    }),
-    prisma.project.findMany({
-      where: { isActive: true },
-      include: {
-        _count: { select: { workers: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-  ]);
+  // Semua query dijalankan paralel sekaligus — tidak ada N+1
+  const [totalProjects, totalWorkers, todayAttendances, rawActiveProjects, todayAttendancePerProject] =
+    await Promise.all([
+      prisma.project.count(),
+      prisma.worker.count(),
+      prisma.attendance.findMany({
+        where: { date: today },
+        select: { status: true },
+      }),
+      prisma.project.findMany({
+        where: { isActive: true },
+        include: {
+          _count: { select: { workers: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      // 1 query untuk semua attendance hari ini per proyek (ganti N query loop)
+      prisma.attendance.groupBy({
+        by: ["workerId"],
+        where: {
+          date: today,
+          status: { in: ["hadir", "lembur"] },
+        },
+        _count: { workerId: true },
+      }).then(async (rows) => {
+        // Ambil projectId untuk setiap workerId sekaligus
+        if (rows.length === 0) return new Map<string, number>();
+        const workerIds = rows.map((r) => r.workerId);
+        const workers = await prisma.worker.findMany({
+          where: { id: { in: workerIds } },
+          select: { id: true, projectId: true },
+        });
+        const projectCount = new Map<string, number>();
+        for (const w of workers) {
+          const pid = w.projectId.toString();
+          projectCount.set(pid, (projectCount.get(pid) ?? 0) + 1);
+        }
+        return projectCount;
+      }),
+    ]);
 
   const presentToday = todayAttendances.filter(
     (a) => a.status === "hadir" || a.status === "lembur"
   ).length;
 
-  // hitung absensi hari ini per proyek
-  const activeProjectsWithAttendance = await Promise.all(
-    rawActiveProjects.map(async (project) => {
-      const attendanceCount = await prisma.attendance.count({
-        where: {
-          date: today,
-          worker: { projectId: project.id },
-          status: { in: ["hadir", "lembur"] },
-        },
-      });
-
-      return {
-        id: Number(project.id),
-        name: project.name,
-        location: project.location,
-        attendanceCount: attendanceCount > 0 ? attendanceCount : Math.min(project._count.workers, 45),
-        totalWorkersNeeded: Math.max(project._count.workers, 60),
-      };
-    })
-  );
+  const activeProjectsWithAttendance = rawActiveProjects.map((project) => ({
+    id: Number(project.id),
+    name: project.name,
+    location: project.location,
+    attendanceCount: todayAttendancePerProject.get(project.id.toString()) ?? 0,
+    totalWorkersNeeded: project._count.workers,
+  }));
 
   const stats = {
     totalProjects,
