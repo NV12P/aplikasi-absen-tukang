@@ -5,24 +5,33 @@ import { serializeBigInt } from "@/lib/bigint";
 import { apiHandler } from "@/lib/api-handler";
 import { z } from "zod";
 
-const updateSchema = z.object({
-  name: z.string().min(1).optional(),
-  daily_wage: z.number().int().min(0).optional(),
-  overtime_wage: z.number().int().min(0).optional(),
-  casting_wage: z.number().int().min(0).optional(),
-});
-
 type Params = { params: Promise<{ id: string }> };
 
-export const GET = apiHandler(async (_req: NextRequest, { params }: Params) => {
+const positionSchema = z.object({
+  name: z.string().min(1),
+  daily_wage: z.number().int().min(0),
+  overtime_wage: z.union([z.number().int().min(0), z.null()]).optional(),
+  casting_wage: z.union([z.number().int().min(0), z.null()]).optional(),
+});
+
+export const GET = apiHandler(async (req: NextRequest, { params }: Params) => {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const position = await prisma.position.findUnique({ where: { id: BigInt(id) } });
-  if (!position) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  return NextResponse.json({ data: serializeBigInt(position) });
+  if (!position) return NextResponse.json({ error: "Position not found" }, { status: 404 });
+
+  return NextResponse.json({ 
+    data: {
+      id: Number(position.id),
+      name: position.name,
+      daily_wage: position.dailyWage,
+      overtime_wage: position.overtimeWage,
+      casting_wage: position.castingWage,
+    }
+  });
 });
 
 export const PUT = apiHandler(async (req: NextRequest, { params }: Params) => {
@@ -31,28 +40,52 @@ export const PUT = apiHandler(async (req: NextRequest, { params }: Params) => {
 
   const { id } = await params;
   const body = await req.json();
-  const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+  const parsed = positionSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
+  }
 
   const position = await prisma.position.update({
     where: { id: BigInt(id) },
     data: {
-      ...(parsed.data.name !== undefined && { name: parsed.data.name }),
-      ...(parsed.data.daily_wage !== undefined && { dailyWage: parsed.data.daily_wage }),
-      ...(parsed.data.overtime_wage !== undefined && { overtimeWage: parsed.data.overtime_wage }),
-      ...(parsed.data.casting_wage !== undefined && { castingWage: parsed.data.casting_wage }),
+      name: parsed.data.name,
+      dailyWage: parsed.data.daily_wage,
+      overtimeWage: parsed.data.overtime_wage ?? null,
+      castingWage: parsed.data.casting_wage ?? null,
     },
   });
 
-  return NextResponse.json({ data: serializeBigInt(position) });
+  return NextResponse.json({ 
+    data: {
+      id: Number(position.id),
+      name: position.name,
+      daily_wage: position.dailyWage,
+      overtime_wage: position.overtimeWage,
+      casting_wage: position.castingWage,
+    }
+  });
 });
 
-export const DELETE = apiHandler(async (_req: NextRequest, { params }: Params) => {
+export const DELETE = apiHandler(async (req: NextRequest, { params }: Params) => {
   const session = await auth();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+
+  // Check if position is used by workers
+  const workersCount = await prisma.worker.count({
+    where: { positionId: BigInt(id) },
+  });
+
+  if (workersCount > 0) {
+    return NextResponse.json(
+      { error: `Tidak dapat menghapus jabatan yang masih digunakan oleh ${workersCount} pekerja` },
+      { status: 400 }
+    );
+  }
+
   await prisma.position.delete({ where: { id: BigInt(id) } });
 
-  return NextResponse.json({ message: "Deleted" });
+  return NextResponse.json({ message: "Position deleted successfully" });
 });
