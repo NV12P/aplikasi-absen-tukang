@@ -39,8 +39,6 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   const [attendance, setAttendance] = useState<Record<number, WorkerAttendanceState>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
-  // Hari dan tanggal saat ini
   const [todayDate, setTodayDate] = useState<string>("");
 
   useEffect(() => {
@@ -151,42 +149,35 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
 
   return (
     <div className="page-container">
-      {/* Toolbar dengan Hari & Tanggal */}
+      {/* Toolbar */}
       <div className="page-toolbar">
         <div className="page-toolbar-left">
           {/* Card Hari & Tanggal */}
           <div
-            className="flex items-center gap-3"
             style={{
-              padding: "10px 16px",
+              padding: "10px 14px",
               backgroundColor: "#f8fafc",
               borderRadius: "8px",
               border: "1px solid #e2e8f0",
-              marginRight: "16px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              marginRight: "12px",
             }}
           >
             <svg
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              aria-hidden="true"
+              style={{ flexShrink: 0, color: "#64748b" }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <div>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#64748b",
-                  margin: "0 0 2px 0",
-                  fontWeight: 500,
-                }}
-              >
-                {todayDate}
-              </p>
-            </div>
+            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}>
+              {todayDate}
+            </span>
           </div>
 
           <CustomSelect
@@ -218,9 +209,9 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           <table className="table" style={{ minWidth: "640px" }}>
             <thead>
               <tr>
-                <th style={{ width: "25%" }}>Nama Pekerja</th>
-                <th style={{ width: "45%" }}>Kehadiran</th>
-                <th style={{ width: "30%" }}>Keterangan (Opsional)</th>
+                <th style={{ width: "30%" }}>Nama Pekerja</th>
+                <th style={{ width: "42%" }}>Kehadiran</th>
+                <th style={{ width: "28%" }}>Keterangan (Opsional)</th>
               </tr>
             </thead>
             <tbody>
@@ -248,50 +239,37 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                   return (
                     <tr key={worker.worker_id}>
                       <td>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {worker.worker_name}
-                          {isAlreadyAttended && (
-                            <span
-                              style={{
-                                background: "#16a34a",
-                                color: "white",
-                                fontSize: "11px",
-                                padding: "2px 8px",
-                                borderRadius: "999px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px",
-                                fontWeight: 600,
-                              }}
-                            >
-                              <svg
-                                width="10"
-                                height="10"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2.5}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                              Sudah Diabsen
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                              {worker.worker_name}
                             </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>
-                          {worker.position || "-"}
+                            {isAlreadyAttended && (
+                              <span
+                                style={{
+                                  background: "#dcfce7",
+                                  color: "#166534",
+                                  fontSize: "10px",
+                                  padding: "3px 8px",
+                                  borderRadius: "4px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  fontWeight: 600,
+                                  whiteSpace: "nowrap",
+                                  border: "1px solid #bbf7d0",
+                                }}
+                              >
+                                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Sudah Diabsen
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                            {worker.position || "-"}
+                          </div>
                         </div>
                       </td>
                       <td>
