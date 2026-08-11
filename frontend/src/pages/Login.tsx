@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, Building2, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
@@ -51,79 +53,133 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      {/* Kiri — Branding */}
+      {/* Visual Header / Branding Area */}
       <div className="login-branding">
-        <h1>CV Fortuna Aeterna</h1>
-        <p>Enterprise Construction Management</p>
+        <div className="login-branding-pattern" />
+        <div className="login-branding-content">
+          <div className="login-logo-badge">
+            <Building2 size={32} />
+          </div>
+          <h1>CV Fortuna Aeterna</h1>
+          <p className="login-subtitle">Enterprise Construction Management</p>
+
+          <div className="login-branding-badges">
+            <span className="badge-item">
+              <ShieldCheck size={15} /> Presensi GPS Proyek
+            </span>
+            <span className="badge-item">
+              <Building2 size={15} /> Kelola Pekerja & Tukang
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Kanan — Form */}
+      {/* Form Area */}
       <div className="login-form-wrapper">
         <div className="card login-card">
-          <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>Login Admin</h2>
-            <p style={{ color: 'var(--text-muted)' }}>Silakan masuk untuk mengelola proyek dan pekerja.</p>
+          <div className="login-card-header">
+            <div className="mobile-brand-header">
+              <div className="mobile-brand-logo">
+                <Building2 size={24} />
+              </div>
+              <div className="mobile-brand-title">
+                <h2>CV Fortuna Aeterna</h2>
+                <p>Enterprise Construction Management</p>
+              </div>
+            </div>
+
+            <div className="login-welcome-text">
+              <h2>Login Portal Admin</h2>
+              <p>Masuk untuk mengelola presensi tukang dan proyek aktif.</p>
+            </div>
           </div>
 
           {errorMsg && (
-            <div style={{
-              padding: '12px',
-              backgroundColor: 'var(--danger-bg)',
-              color: 'var(--danger)',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              fontSize: '13px',
-              fontWeight: 500
-            }}>
-              {errorMsg}
+            <div className="login-error-banner" role="alert">
+              <span className="error-dot" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>
-                Email
-              </label>
+          <form onSubmit={handleLogin} className="login-form">
+            <div className="form-group">
+              <label htmlFor="login-email">Email Administrator</label>
               <div className="input-group">
                 <Mail className="input-icon" size={18} />
                 <input
+                  id="login-email"
                   type="email"
                   required
+                  autoComplete="email"
                   className="input-field"
                   placeholder="admin@absen.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ paddingLeft: '40px' }}
                 />
               </div>
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>
-                Password
-              </label>
-              <div className="input-group">
+            <div className="form-group">
+              <div className="label-with-action">
+                <label htmlFor="login-password">Password</label>
+              </div>
+              <div className="input-group password-group">
                 <Lock className="input-icon" size={18} />
                 <input
-                  type="password"
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="current-password"
                   className="input-field"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ paddingLeft: '40px' }}
                 />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
+            </div>
+
+            <div className="form-options">
+              <label className="remember-checkbox">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+                <span className="checkmark" />
+                <span className="remember-text">Ingat saya di perangkat ini</span>
+              </label>
             </div>
 
             <button
               type="submit"
-              className="btn-primary"
+              className="btn-primary login-submit-btn"
               disabled={loading}
-              style={{ padding: '14px', justifyContent: 'center', fontSize: '16px', marginTop: '8px' }}
             >
-              {loading ? 'Memproses...' : 'Login'}
+              {loading ? (
+                <>
+                  <Loader2 className="spinner-icon" size={18} />
+                  <span>Memproses...</span>
+                </>
+              ) : (
+                <>
+                  <span>Login Sistem</span>
+                  <ArrowRight size={18} />
+                </>
+              )}
             </button>
+
+            <div className="login-footer-hint">
+              <span>Pertanyaan atau bantuan akses?</span>
+              <a href="mailto:support@fortuna.co.id" className="support-link">Hubungi IT Support</a>
+            </div>
           </form>
         </div>
       </div>
@@ -132,3 +188,4 @@ const Login = () => {
 };
 
 export default Login;
+

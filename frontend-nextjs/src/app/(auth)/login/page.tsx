@@ -39,6 +39,16 @@ export default function LoginPage() {
 
       {/* ─── Panel kiri: branding ─────────────────────────────────────────── */}
       <div className="login-branding">
+        <div className="login-logo-badge">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+            <path d="M6 12H4a2 2 0 0 0-2 2v8h20v-8a2 2 0 0 0-2-2h-2" />
+            <path d="M10 6h4" />
+            <path d="M10 10h4" />
+            <path d="M10 14h4" />
+            <path d="M10 18h4" />
+          </svg>
+        </div>
         <h1>CV Fortuna Aeterna</h1>
         <p>Enterprise Construction Management</p>
       </div>
@@ -48,7 +58,7 @@ export default function LoginPage() {
         <div className="card login-card">
 
           {/* Header card */}
-          <div style={{ marginBottom: "32px" }}>
+          <div className="login-card-header">
             <h2 style={{ fontSize: "24px", fontWeight: 700, marginBottom: "8px" }}>
               Login Admin
             </h2>

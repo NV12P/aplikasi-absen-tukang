@@ -1079,7 +1079,7 @@ ul {
 }
 
 
-/* ─── Login Page ─────────────────────────────────────────────────────────────── */
+/* ─── Login Page (Original Desktop & Ultra-Premium Mobile Responsive) ────────── */
 
 .login-page {
   display: flex;
@@ -1098,6 +1098,19 @@ ul {
   color: #1a1a1a;
   position: relative;
   overflow: hidden;
+}
+
+.login-logo-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background-color: #1c1917;
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .login-branding::before {
@@ -1189,16 +1202,160 @@ ul {
   }
 }
 
+/* ─── Ultra-Premium Mobile Layout (< 768px) ────────────────────────────────── */
+
 @media (max-width: 768px) {
-  .login-branding {
-    display: none;
+  .login-page {
+    flex-direction: column;
+    min-height: 100dvh;
+    background-color: var(--bg-page, #fbf9f4);
+    overflow-x: hidden;
+    position: relative;
   }
 
+  /* Half-Screen Top Orange Hero Header Banner */
+  .login-branding {
+    flex: none;
+    max-width: 100%;
+    width: 100%;
+    min-height: 42vh;
+    padding: 44px 20px 64px 20px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 0 0 32px 32px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 8px 30px rgba(217, 119, 6, 0.3);
+    display: flex !important;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-logo-badge {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background-color: #1c1917;
+    color: #f59e0b;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  }
+
+  .login-branding h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1c1917;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
+  }
+
+  .login-branding p {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgba(28, 25, 23, 0.85);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+
+  /* Floating Card Wrapper Over Half-Screen Header */
   .login-form-wrapper {
-    padding: 24px 16px;
+    flex: 1;
+    padding: 0 18px 40px 18px;
+    margin-top: -48px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    background-color: transparent;
+    position: relative;
+    z-index: 2;
   }
 
   .login-card {
-    max-width: 100%;
+    max-width: 400px;
+    padding: 28px 22px;
+    border-radius: 24px;
+    background-color: #ffffff;
+    border: 1px solid #e5e2db;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Spacing for Card Header & Input Fields */
+  .login-card-header {
+    margin-bottom: 26px !important;
+  }
+
+  .login-card-header h2 {
+    font-size: 22px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .login-card-header p {
+    font-size: 13.5px !important;
+  }
+
+  .input-field {
+    height: 48px;
+    border-radius: 10px;
+    border: 1.5px solid #e5e2db;
+    background-color: #faf9f6;
+    font-size: 14px;
+    color: #1c1917;
+    transition: all 0.2s ease;
+  }
+
+  .input-field:focus {
+    outline: none;
+    border-color: #d97706;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3.5px rgba(245, 158, 11, 0.22);
+  }
+
+  .btn-primary {
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #1c1917;
+    font-weight: 800;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
   }
 }
+
+@media (max-width: 480px) {
+  .login-branding {
+    min-height: 40vh;
+    padding: 36px 16px 56px 16px;
+  }
+
+  .login-branding h1 {
+    font-size: 22px;
+  }
+
+  .login-form-wrapper {
+    margin-top: -44px;
+    padding: 0 14px 32px 14px;
+  }
+
+  .login-card {
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+
+  .login-card-header {
+    margin-bottom: 22px !important;
+  }
+}
+
+
+
+
+
+
