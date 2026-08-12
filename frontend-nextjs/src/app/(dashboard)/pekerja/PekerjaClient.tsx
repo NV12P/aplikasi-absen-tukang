@@ -14,11 +14,11 @@ interface WorkerRow {
   projectId: number;
   positionId: number;
   project: { id: number; name: string } | null;
-  position: { id: number; name: string; dailyWage: number } | null;
+  position: { id: number; name: string; dailyWage: number | null } | null;
 }
 
 interface ProjectOption { id: number; name: string }
-interface PositionOption { id: number; name: string; dailyWage: number }
+interface PositionOption { id: number; name: string; dailyWage: number | null }
 
 const emptyForm = {
   name: "",

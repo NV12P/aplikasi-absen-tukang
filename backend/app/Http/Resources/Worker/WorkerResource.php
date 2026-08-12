@@ -19,20 +19,20 @@ class WorkerResource extends JsonResource
 
             'address' => $this->address,
 
-            'is_active' => $this->is_active,
+            'is_active' => (bool) $this->is_active,
 
-            'project' => [
+            'project' => $this->project ? [
                 'id' => $this->project->id,
                 'name' => $this->project->name,
-            ],
+            ] : null,
 
-            'position' => [
+            'position' => $this->position ? [
                 'id' => $this->position->id,
                 'name' => $this->position->name,
-                'daily_wage' => $this->position->daily_wage,
-                'overtime_wage' => $this->position->overtime_wage,
-                'casting_wage' => $this->position->casting_wage,
-            ],
+                'daily_wage' => $this->position->daily_wage ?? 0,
+                'overtime_wage' => $this->position->overtime_wage ?? 0,
+                'casting_wage' => $this->position->casting_wage ?? 0,
+            ] : null,
 
         ];
     }

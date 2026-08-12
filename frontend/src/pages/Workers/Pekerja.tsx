@@ -22,8 +22,8 @@ interface Worker {
   phone: string | null;
   address: string | null;
   is_active: boolean;
-  project: { id: number; name: string };
-  position: { id: number; name: string };
+  project: { id: number; name: string } | null;
+  position: { id: number; name: string } | null;
 }
 
 const Pekerja = () => {
@@ -56,9 +56,9 @@ const Pekerja = () => {
         fetchApi('/positions', { token }),
         fetchApi('/workers', { token })
       ]);
-      setProjects(projectsRes.data);
-      setPositions(positionsRes.data);
-      setWorkers(workersRes.data);
+      setProjects(projectsRes.data || []);
+      setPositions(positionsRes.data || []);
+      setWorkers(workersRes.data || []);
     } catch (error: any) {
       if (error.message === 'Unauthorized') {
         logout();
@@ -93,8 +93,8 @@ const Pekerja = () => {
       name: worker.name,
       phone: worker.phone || '',
       address: worker.address || '',
-      position_id: worker.position?.id ? worker.position.id.toString() : '',
-      project_id: worker.project?.id ? worker.project.id.toString() : '',
+      position_id: worker.position?.id ? worker.position.id.toString() : (positions.length > 0 ? positions[0].id.toString() : ''),
+      project_id: worker.project?.id ? worker.project.id.toString() : (projects.length > 0 ? projects[0].id.toString() : ''),
       is_active: worker.is_active
     });
     setIsModalOpen(true);
@@ -122,12 +122,26 @@ const Pekerja = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.name.trim()) {
+      toast.warning('Nama pekerja tidak boleh kosong!');
+      return;
+    }
+
+    if (!formData.project_id || !formData.position_id) {
+      toast.warning('Silakan pilih Jabatan dan Penugasan Proyek!');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const payload = {
-        ...formData,
+        name: formData.name.trim(),
+        phone: formData.phone.trim() || null,
+        address: formData.address.trim() || null,
         project_id: parseInt(formData.project_id),
-        position_id: parseInt(formData.position_id)
+        position_id: parseInt(formData.position_id),
+        is_active: formData.is_active
       };
       if (editingWorker) {
         await fetchApi(`/workers/${editingWorker.id}`, { method: 'PUT', token, body: JSON.stringify(payload) });
@@ -146,7 +160,7 @@ const Pekerja = () => {
   };
 
   const displayWorkers = selectedProject
-    ? workers.filter(w => w.project?.id.toString() === selectedProject)
+    ? workers.filter(w => w.project?.id?.toString() === selectedProject)
     : workers;
 
   if (loading && workers.length === 0) {
@@ -208,7 +222,8 @@ const Pekerja = () => {
                 </tr>
               ) : (
                 displayWorkers.map(worker => {
-                  const workerProject = projects.find(p => p.id === worker.project?.id);
+                  const workerProjectName = worker.project?.name || projects.find(p => p.id === worker.project?.id)?.name || '-';
+                  const workerPositionName = worker.position?.name || positions.find(p => p.id === worker.position?.id)?.name || '-';
                   return (
                     <tr key={worker.id}>
                       <td>
@@ -217,8 +232,8 @@ const Pekerja = () => {
                           {worker.phone || 'No HP tidak tersedia'}
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-muted)' }}>{worker.position?.name || '-'}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>{workerProject ? workerProject.name : '-'}</td>
+                      <td style={{ color: 'var(--text-muted)' }}>{workerPositionName}</td>
+                      <td style={{ color: 'var(--text-muted)' }}>{workerProjectName}</td>
                       <td>
                         {worker.is_active
                           ? <span className="badge" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>Aktif</span>

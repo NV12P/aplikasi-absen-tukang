@@ -1,4 +1,4 @@
-import type { AttendanceStatus } from "@prisma/client";
+import type { AttendanceStatus } from "@/generated/client";
 
 /**
  * Kalkulasi upah berdasarkan status absensi dan posisi pekerja.
@@ -12,17 +12,21 @@ import type { AttendanceStatus } from "@prisma/client";
  */
 export function calculateWage(
   status: AttendanceStatus,
-  dailyWage: number,
-  overtimeWage: number,
-  castingWage: number
+  dailyWage?: number | null,
+  overtimeWage?: number | null,
+  castingWage?: number | null
 ): number {
+  const daily = dailyWage ?? 0;
+  const overtime = overtimeWage ?? 0;
+  const casting = castingWage ?? 0;
+
   switch (status) {
     case "hadir":
-      return dailyWage;
+      return daily;
     case "lembur":
-      return dailyWage + overtimeWage;
+      return daily + overtime;
     case "cor":
-      return castingWage;
+      return casting;
     case "alpha":
       return 0;
     default:

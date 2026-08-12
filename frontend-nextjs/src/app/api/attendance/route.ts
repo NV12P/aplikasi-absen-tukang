@@ -5,7 +5,7 @@ import { serializeBigInt } from "@/lib/bigint";
 import { apiHandler } from "@/lib/api-handler";
 import { calculateWage } from "@/lib/wage";
 import { z } from "zod";
-import { AttendanceStatus } from "@prisma/client";
+import { AttendanceStatus } from "@/generated/client";
 
 const storeSchema = z.object({
   project_id: z.number().int().positive(),

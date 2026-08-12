@@ -1,7 +1,7 @@
 // ─── Tipe data global untuk seluruh aplikasi ────────────────────────────────
 // Migrasi dari Laravel API Resources (response shapes)
 
-import type { AttendanceStatus } from "@prisma/client";
+import type { AttendanceStatus } from "@/generated/client";
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
