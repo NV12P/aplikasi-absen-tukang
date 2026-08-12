@@ -16,23 +16,14 @@ const pageTitles: Record<string, string> = {
   "/pekerja": "Kelola Data Pekerja",
   "/input-absensi": "Input Absensi Harian",
   "/rekap-absensi": "Rekap Absensi Pekerja",
+  "/master-data": "Master Data Pekerja",
 };
 
 export function Navbar({ user, onMenuToggle }: NavbarProps) {
   const pathname = usePathname();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [imgError, setImgError] = useState(false);
 
   const currentTitle = pageTitles[pathname] || "Dashboard Overview";
-
-  const initials = user.name
-    ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "AD";
 
   return (
     <header className="top-header">
@@ -60,18 +51,21 @@ export function Navbar({ user, onMenuToggle }: NavbarProps) {
             aria-label="User profile menu"
           >
             <span className="user-name">{user.name || "Admin"}</span>
-            {!imgError ? (
-              <img
-                src="/leon.webp"
-                alt={user.name || "User profile"}
-                className="user-avatar"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="user-avatar flex items-center justify-center bg-amber-400 text-stone-900 font-bold text-xs">
-                {initials}
-              </div>
-            )}
+            <div className="user-avatar flex items-center justify-center bg-stone-200">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5 text-stone-500"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
           </button>
 
           {dropdownOpen && (
