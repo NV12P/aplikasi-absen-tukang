@@ -169,10 +169,10 @@ exports.Prisma.AttendanceScalarFieldEnum = {
   id: 'id',
   workerId: 'workerId',
   date: 'date',
-  status: 'status',
   wage: 'wage',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  status: 'status'
 };
 
 exports.Prisma.SortOrder = {

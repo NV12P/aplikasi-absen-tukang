@@ -2381,7 +2381,7 @@ export namespace Prisma {
   export type PositionGroupByOutputType = {
     id: bigint
     name: string
-    dailyWage: number | null
+    dailyWage: number
     overtimeWage: number | null
     castingWage: number | null
     createdAt: Date | null
@@ -2453,7 +2453,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
       name: string
-      dailyWage: number | null
+      dailyWage: number
       overtimeWage: number | null
       castingWage: number | null
       createdAt: Date | null
@@ -4475,9 +4475,9 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    project?: boolean | ProjectDefaultArgs<ExtArgs>
-    position?: boolean | PositionDefaultArgs<ExtArgs>
     attendances?: boolean | Worker$attendancesArgs<ExtArgs>
+    position?: boolean | PositionDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
     _count?: boolean | WorkerCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["worker"]>
 
@@ -4491,8 +4491,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    project?: boolean | ProjectDefaultArgs<ExtArgs>
     position?: boolean | PositionDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["worker"]>
 
   export type WorkerSelectScalar = {
@@ -4508,22 +4508,22 @@ export namespace Prisma {
   }
 
   export type WorkerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    project?: boolean | ProjectDefaultArgs<ExtArgs>
-    position?: boolean | PositionDefaultArgs<ExtArgs>
     attendances?: boolean | Worker$attendancesArgs<ExtArgs>
+    position?: boolean | PositionDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
     _count?: boolean | WorkerCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type WorkerIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    project?: boolean | ProjectDefaultArgs<ExtArgs>
     position?: boolean | PositionDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
   }
 
   export type $WorkerPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Worker"
     objects: {
-      project: Prisma.$ProjectPayload<ExtArgs>
-      position: Prisma.$PositionPayload<ExtArgs>
       attendances: Prisma.$AttendancePayload<ExtArgs>[]
+      position: Prisma.$PositionPayload<ExtArgs>
+      project: Prisma.$ProjectPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
@@ -4899,9 +4899,9 @@ export namespace Prisma {
    */
   export interface Prisma__WorkerClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    position<T extends PositionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PositionDefaultArgs<ExtArgs>>): Prisma__PositionClient<$Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     attendances<T extends Worker$attendancesArgs<ExtArgs> = {}>(args?: Subset<T, Worker$attendancesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany"> | Null>
+    position<T extends PositionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PositionDefaultArgs<ExtArgs>>): Prisma__PositionClient<$Result.GetResult<Prisma.$PositionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5320,30 +5320,30 @@ export namespace Prisma {
     id: bigint | null
     workerId: bigint | null
     date: Date | null
-    status: $Enums.AttendanceStatus | null
     wage: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    status: $Enums.AttendanceStatus | null
   }
 
   export type AttendanceMaxAggregateOutputType = {
     id: bigint | null
     workerId: bigint | null
     date: Date | null
-    status: $Enums.AttendanceStatus | null
     wage: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    status: $Enums.AttendanceStatus | null
   }
 
   export type AttendanceCountAggregateOutputType = {
     id: number
     workerId: number
     date: number
-    status: number
     wage: number
     createdAt: number
     updatedAt: number
+    status: number
     _all: number
   }
 
@@ -5364,30 +5364,30 @@ export namespace Prisma {
     id?: true
     workerId?: true
     date?: true
-    status?: true
     wage?: true
     createdAt?: true
     updatedAt?: true
+    status?: true
   }
 
   export type AttendanceMaxAggregateInputType = {
     id?: true
     workerId?: true
     date?: true
-    status?: true
     wage?: true
     createdAt?: true
     updatedAt?: true
+    status?: true
   }
 
   export type AttendanceCountAggregateInputType = {
     id?: true
     workerId?: true
     date?: true
-    status?: true
     wage?: true
     createdAt?: true
     updatedAt?: true
+    status?: true
     _all?: true
   }
 
@@ -5481,10 +5481,10 @@ export namespace Prisma {
     id: bigint
     workerId: bigint
     date: Date
-    status: $Enums.AttendanceStatus
     wage: number
     createdAt: Date | null
     updatedAt: Date | null
+    status: $Enums.AttendanceStatus
     _count: AttendanceCountAggregateOutputType | null
     _avg: AttendanceAvgAggregateOutputType | null
     _sum: AttendanceSumAggregateOutputType | null
@@ -5510,10 +5510,10 @@ export namespace Prisma {
     id?: boolean
     workerId?: boolean
     date?: boolean
-    status?: boolean
     wage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    status?: boolean
     worker?: boolean | WorkerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
 
@@ -5521,10 +5521,10 @@ export namespace Prisma {
     id?: boolean
     workerId?: boolean
     date?: boolean
-    status?: boolean
     wage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    status?: boolean
     worker?: boolean | WorkerDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
 
@@ -5532,10 +5532,10 @@ export namespace Prisma {
     id?: boolean
     workerId?: boolean
     date?: boolean
-    status?: boolean
     wage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    status?: boolean
   }
 
   export type AttendanceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5554,10 +5554,10 @@ export namespace Prisma {
       id: bigint
       workerId: bigint
       date: Date
-      status: $Enums.AttendanceStatus
       wage: number
       createdAt: Date | null
       updatedAt: Date | null
+      status: $Enums.AttendanceStatus
     }, ExtArgs["result"]["attendance"]>
     composites: {}
   }
@@ -5955,10 +5955,10 @@ export namespace Prisma {
     readonly id: FieldRef<"Attendance", 'BigInt'>
     readonly workerId: FieldRef<"Attendance", 'BigInt'>
     readonly date: FieldRef<"Attendance", 'DateTime'>
-    readonly status: FieldRef<"Attendance", 'AttendanceStatus'>
     readonly wage: FieldRef<"Attendance", 'Int'>
     readonly createdAt: FieldRef<"Attendance", 'DateTime'>
     readonly updatedAt: FieldRef<"Attendance", 'DateTime'>
+    readonly status: FieldRef<"Attendance", 'AttendanceStatus'>
   }
     
 
@@ -6364,10 +6364,10 @@ export namespace Prisma {
     id: 'id',
     workerId: 'workerId',
     date: 'date',
-    status: 'status',
     wage: 'wage',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    status: 'status'
   };
 
   export type AttendanceScalarFieldEnum = (typeof AttendanceScalarFieldEnum)[keyof typeof AttendanceScalarFieldEnum]
@@ -6559,7 +6559,7 @@ export namespace Prisma {
     NOT?: PositionWhereInput | PositionWhereInput[]
     id?: BigIntFilter<"Position"> | bigint | number
     name?: StringFilter<"Position"> | string
-    dailyWage?: IntNullableFilter<"Position"> | number | null
+    dailyWage?: IntFilter<"Position"> | number
     overtimeWage?: IntNullableFilter<"Position"> | number | null
     castingWage?: IntNullableFilter<"Position"> | number | null
     createdAt?: DateTimeNullableFilter<"Position"> | Date | string | null
@@ -6570,7 +6570,7 @@ export namespace Prisma {
   export type PositionOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    dailyWage?: SortOrderInput | SortOrder
+    dailyWage?: SortOrder
     overtimeWage?: SortOrderInput | SortOrder
     castingWage?: SortOrderInput | SortOrder
     createdAt?: SortOrderInput | SortOrder
@@ -6584,7 +6584,7 @@ export namespace Prisma {
     OR?: PositionWhereInput[]
     NOT?: PositionWhereInput | PositionWhereInput[]
     name?: StringFilter<"Position"> | string
-    dailyWage?: IntNullableFilter<"Position"> | number | null
+    dailyWage?: IntFilter<"Position"> | number
     overtimeWage?: IntNullableFilter<"Position"> | number | null
     castingWage?: IntNullableFilter<"Position"> | number | null
     createdAt?: DateTimeNullableFilter<"Position"> | Date | string | null
@@ -6595,7 +6595,7 @@ export namespace Prisma {
   export type PositionOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    dailyWage?: SortOrderInput | SortOrder
+    dailyWage?: SortOrder
     overtimeWage?: SortOrderInput | SortOrder
     castingWage?: SortOrderInput | SortOrder
     createdAt?: SortOrderInput | SortOrder
@@ -6613,7 +6613,7 @@ export namespace Prisma {
     NOT?: PositionScalarWhereWithAggregatesInput | PositionScalarWhereWithAggregatesInput[]
     id?: BigIntWithAggregatesFilter<"Position"> | bigint | number
     name?: StringWithAggregatesFilter<"Position"> | string
-    dailyWage?: IntNullableWithAggregatesFilter<"Position"> | number | null
+    dailyWage?: IntWithAggregatesFilter<"Position"> | number
     overtimeWage?: IntNullableWithAggregatesFilter<"Position"> | number | null
     castingWage?: IntNullableWithAggregatesFilter<"Position"> | number | null
     createdAt?: DateTimeNullableWithAggregatesFilter<"Position"> | Date | string | null
@@ -6710,9 +6710,9 @@ export namespace Prisma {
     isActive?: BoolFilter<"Worker"> | boolean
     createdAt?: DateTimeNullableFilter<"Worker"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Worker"> | Date | string | null
-    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
-    position?: XOR<PositionRelationFilter, PositionWhereInput>
     attendances?: AttendanceListRelationFilter
+    position?: XOR<PositionRelationFilter, PositionWhereInput>
+    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
   }
 
   export type WorkerOrderByWithRelationInput = {
@@ -6725,9 +6725,9 @@ export namespace Prisma {
     isActive?: SortOrder
     createdAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrderInput | SortOrder
-    project?: ProjectOrderByWithRelationInput
-    position?: PositionOrderByWithRelationInput
     attendances?: AttendanceOrderByRelationAggregateInput
+    position?: PositionOrderByWithRelationInput
+    project?: ProjectOrderByWithRelationInput
   }
 
   export type WorkerWhereUniqueInput = Prisma.AtLeast<{
@@ -6743,9 +6743,9 @@ export namespace Prisma {
     isActive?: BoolFilter<"Worker"> | boolean
     createdAt?: DateTimeNullableFilter<"Worker"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Worker"> | Date | string | null
-    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
-    position?: XOR<PositionRelationFilter, PositionWhereInput>
     attendances?: AttendanceListRelationFilter
+    position?: XOR<PositionRelationFilter, PositionWhereInput>
+    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
   }, "id">
 
   export type WorkerOrderByWithAggregationInput = {
@@ -6787,10 +6787,10 @@ export namespace Prisma {
     id?: BigIntFilter<"Attendance"> | bigint | number
     workerId?: BigIntFilter<"Attendance"> | bigint | number
     date?: DateTimeFilter<"Attendance"> | Date | string
-    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
     wage?: IntFilter<"Attendance"> | number
     createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
+    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
     worker?: XOR<WorkerRelationFilter, WorkerWhereInput>
   }
 
@@ -6798,10 +6798,10 @@ export namespace Prisma {
     id?: SortOrder
     workerId?: SortOrder
     date?: SortOrder
-    status?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
     worker?: WorkerOrderByWithRelationInput
   }
 
@@ -6813,10 +6813,10 @@ export namespace Prisma {
     NOT?: AttendanceWhereInput | AttendanceWhereInput[]
     workerId?: BigIntFilter<"Attendance"> | bigint | number
     date?: DateTimeFilter<"Attendance"> | Date | string
-    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
     wage?: IntFilter<"Attendance"> | number
     createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
+    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
     worker?: XOR<WorkerRelationFilter, WorkerWhereInput>
   }, "id" | "workerId_date">
 
@@ -6824,10 +6824,10 @@ export namespace Prisma {
     id?: SortOrder
     workerId?: SortOrder
     date?: SortOrder
-    status?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrderInput | SortOrder
+    status?: SortOrder
     _count?: AttendanceCountOrderByAggregateInput
     _avg?: AttendanceAvgOrderByAggregateInput
     _max?: AttendanceMaxOrderByAggregateInput
@@ -6842,10 +6842,10 @@ export namespace Prisma {
     id?: BigIntWithAggregatesFilter<"Attendance"> | bigint | number
     workerId?: BigIntWithAggregatesFilter<"Attendance"> | bigint | number
     date?: DateTimeWithAggregatesFilter<"Attendance"> | Date | string
-    status?: EnumAttendanceStatusWithAggregatesFilter<"Attendance"> | $Enums.AttendanceStatus
     wage?: IntWithAggregatesFilter<"Attendance"> | number
     createdAt?: DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
     updatedAt?: DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
+    status?: EnumAttendanceStatusWithAggregatesFilter<"Attendance"> | $Enums.AttendanceStatus
   }
 
   export type AdminUserCreateInput = {
@@ -6914,7 +6914,7 @@ export namespace Prisma {
   export type PositionCreateInput = {
     id?: bigint | number
     name: string
-    dailyWage?: number | null
+    dailyWage: number
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -6925,7 +6925,7 @@ export namespace Prisma {
   export type PositionUncheckedCreateInput = {
     id?: bigint | number
     name: string
-    dailyWage?: number | null
+    dailyWage: number
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -6936,7 +6936,7 @@ export namespace Prisma {
   export type PositionUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
-    dailyWage?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyWage?: IntFieldUpdateOperationsInput | number
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6947,7 +6947,7 @@ export namespace Prisma {
   export type PositionUncheckedUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
-    dailyWage?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyWage?: IntFieldUpdateOperationsInput | number
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6958,7 +6958,7 @@ export namespace Prisma {
   export type PositionCreateManyInput = {
     id?: bigint | number
     name: string
-    dailyWage?: number | null
+    dailyWage: number
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -6968,7 +6968,7 @@ export namespace Prisma {
   export type PositionUpdateManyMutationInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
-    dailyWage?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyWage?: IntFieldUpdateOperationsInput | number
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -6978,7 +6978,7 @@ export namespace Prisma {
   export type PositionUncheckedUpdateManyInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
-    dailyWage?: NullableIntFieldUpdateOperationsInput | number | null
+    dailyWage?: IntFieldUpdateOperationsInput | number
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -7081,9 +7081,9 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
-    project: ProjectCreateNestedOneWithoutWorkersInput
-    position: PositionCreateNestedOneWithoutWorkersInput
     attendances?: AttendanceCreateNestedManyWithoutWorkerInput
+    position: PositionCreateNestedOneWithoutWorkersInput
+    project: ProjectCreateNestedOneWithoutWorkersInput
   }
 
   export type WorkerUncheckedCreateInput = {
@@ -7107,9 +7107,9 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    project?: ProjectUpdateOneRequiredWithoutWorkersNestedInput
-    position?: PositionUpdateOneRequiredWithoutWorkersNestedInput
     attendances?: AttendanceUpdateManyWithoutWorkerNestedInput
+    position?: PositionUpdateOneRequiredWithoutWorkersNestedInput
+    project?: ProjectUpdateOneRequiredWithoutWorkersNestedInput
   }
 
   export type WorkerUncheckedUpdateInput = {
@@ -7162,10 +7162,10 @@ export namespace Prisma {
   export type AttendanceCreateInput = {
     id?: bigint | number
     date: Date | string
-    status: $Enums.AttendanceStatus
     wage: number
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
     worker: WorkerCreateNestedOneWithoutAttendancesInput
   }
 
@@ -7173,19 +7173,19 @@ export namespace Prisma {
     id?: bigint | number
     workerId: bigint | number
     date: Date | string
-    status: $Enums.AttendanceStatus
     wage: number
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
   }
 
   export type AttendanceUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     worker?: WorkerUpdateOneRequiredWithoutAttendancesNestedInput
   }
 
@@ -7193,39 +7193,39 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     workerId?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   }
 
   export type AttendanceCreateManyInput = {
     id?: bigint | number
     workerId: bigint | number
     date: Date | string
-    status: $Enums.AttendanceStatus
     wage: number
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
   }
 
   export type AttendanceUpdateManyMutationInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   }
 
   export type AttendanceUncheckedUpdateManyInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     workerId?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -7324,6 +7324,17 @@ export namespace Prisma {
     not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
   export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -7419,6 +7430,22 @@ export namespace Prisma {
     _sum?: NestedBigIntFilter<$PrismaModel>
     _min?: NestedBigIntFilter<$PrismaModel>
     _max?: NestedBigIntFilter<$PrismaModel>
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -7541,9 +7568,10 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type ProjectRelationFilter = {
-    is?: ProjectWhereInput
-    isNot?: ProjectWhereInput
+  export type AttendanceListRelationFilter = {
+    every?: AttendanceWhereInput
+    some?: AttendanceWhereInput
+    none?: AttendanceWhereInput
   }
 
   export type PositionRelationFilter = {
@@ -7551,10 +7579,9 @@ export namespace Prisma {
     isNot?: PositionWhereInput
   }
 
-  export type AttendanceListRelationFilter = {
-    every?: AttendanceWhereInput
-    some?: AttendanceWhereInput
-    none?: AttendanceWhereInput
+  export type ProjectRelationFilter = {
+    is?: ProjectWhereInput
+    isNot?: ProjectWhereInput
   }
 
   export type AttendanceOrderByRelationAggregateInput = {
@@ -7616,17 +7643,6 @@ export namespace Prisma {
     not?: NestedEnumAttendanceStatusFilter<$PrismaModel> | $Enums.AttendanceStatus
   }
 
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type WorkerRelationFilter = {
     is?: WorkerWhereInput
     isNot?: WorkerWhereInput
@@ -7641,10 +7657,10 @@ export namespace Prisma {
     id?: SortOrder
     workerId?: SortOrder
     date?: SortOrder
-    status?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    status?: SortOrder
   }
 
   export type AttendanceAvgOrderByAggregateInput = {
@@ -7657,20 +7673,20 @@ export namespace Prisma {
     id?: SortOrder
     workerId?: SortOrder
     date?: SortOrder
-    status?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    status?: SortOrder
   }
 
   export type AttendanceMinOrderByAggregateInput = {
     id?: SortOrder
     workerId?: SortOrder
     date?: SortOrder
-    status?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    status?: SortOrder
   }
 
   export type AttendanceSumOrderByAggregateInput = {
@@ -7687,22 +7703,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAttendanceStatusFilter<$PrismaModel>
     _max?: NestedEnumAttendanceStatusFilter<$PrismaModel>
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -7733,6 +7733,14 @@ export namespace Prisma {
     decrement?: bigint | number
     multiply?: bigint | number
     divide?: bigint | number
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -7825,10 +7833,11 @@ export namespace Prisma {
     deleteMany?: WorkerScalarWhereInput | WorkerScalarWhereInput[]
   }
 
-  export type ProjectCreateNestedOneWithoutWorkersInput = {
-    create?: XOR<ProjectCreateWithoutWorkersInput, ProjectUncheckedCreateWithoutWorkersInput>
-    connectOrCreate?: ProjectCreateOrConnectWithoutWorkersInput
-    connect?: ProjectWhereUniqueInput
+  export type AttendanceCreateNestedManyWithoutWorkerInput = {
+    create?: XOR<AttendanceCreateWithoutWorkerInput, AttendanceUncheckedCreateWithoutWorkerInput> | AttendanceCreateWithoutWorkerInput[] | AttendanceUncheckedCreateWithoutWorkerInput[]
+    connectOrCreate?: AttendanceCreateOrConnectWithoutWorkerInput | AttendanceCreateOrConnectWithoutWorkerInput[]
+    createMany?: AttendanceCreateManyWorkerInputEnvelope
+    connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
   }
 
   export type PositionCreateNestedOneWithoutWorkersInput = {
@@ -7837,11 +7846,10 @@ export namespace Prisma {
     connect?: PositionWhereUniqueInput
   }
 
-  export type AttendanceCreateNestedManyWithoutWorkerInput = {
-    create?: XOR<AttendanceCreateWithoutWorkerInput, AttendanceUncheckedCreateWithoutWorkerInput> | AttendanceCreateWithoutWorkerInput[] | AttendanceUncheckedCreateWithoutWorkerInput[]
-    connectOrCreate?: AttendanceCreateOrConnectWithoutWorkerInput | AttendanceCreateOrConnectWithoutWorkerInput[]
-    createMany?: AttendanceCreateManyWorkerInputEnvelope
-    connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+  export type ProjectCreateNestedOneWithoutWorkersInput = {
+    create?: XOR<ProjectCreateWithoutWorkersInput, ProjectUncheckedCreateWithoutWorkersInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutWorkersInput
+    connect?: ProjectWhereUniqueInput
   }
 
   export type AttendanceUncheckedCreateNestedManyWithoutWorkerInput = {
@@ -7849,22 +7857,6 @@ export namespace Prisma {
     connectOrCreate?: AttendanceCreateOrConnectWithoutWorkerInput | AttendanceCreateOrConnectWithoutWorkerInput[]
     createMany?: AttendanceCreateManyWorkerInputEnvelope
     connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
-  }
-
-  export type ProjectUpdateOneRequiredWithoutWorkersNestedInput = {
-    create?: XOR<ProjectCreateWithoutWorkersInput, ProjectUncheckedCreateWithoutWorkersInput>
-    connectOrCreate?: ProjectCreateOrConnectWithoutWorkersInput
-    upsert?: ProjectUpsertWithoutWorkersInput
-    connect?: ProjectWhereUniqueInput
-    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutWorkersInput, ProjectUpdateWithoutWorkersInput>, ProjectUncheckedUpdateWithoutWorkersInput>
-  }
-
-  export type PositionUpdateOneRequiredWithoutWorkersNestedInput = {
-    create?: XOR<PositionCreateWithoutWorkersInput, PositionUncheckedCreateWithoutWorkersInput>
-    connectOrCreate?: PositionCreateOrConnectWithoutWorkersInput
-    upsert?: PositionUpsertWithoutWorkersInput
-    connect?: PositionWhereUniqueInput
-    update?: XOR<XOR<PositionUpdateToOneWithWhereWithoutWorkersInput, PositionUpdateWithoutWorkersInput>, PositionUncheckedUpdateWithoutWorkersInput>
   }
 
   export type AttendanceUpdateManyWithoutWorkerNestedInput = {
@@ -7879,6 +7871,22 @@ export namespace Prisma {
     update?: AttendanceUpdateWithWhereUniqueWithoutWorkerInput | AttendanceUpdateWithWhereUniqueWithoutWorkerInput[]
     updateMany?: AttendanceUpdateManyWithWhereWithoutWorkerInput | AttendanceUpdateManyWithWhereWithoutWorkerInput[]
     deleteMany?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+  }
+
+  export type PositionUpdateOneRequiredWithoutWorkersNestedInput = {
+    create?: XOR<PositionCreateWithoutWorkersInput, PositionUncheckedCreateWithoutWorkersInput>
+    connectOrCreate?: PositionCreateOrConnectWithoutWorkersInput
+    upsert?: PositionUpsertWithoutWorkersInput
+    connect?: PositionWhereUniqueInput
+    update?: XOR<XOR<PositionUpdateToOneWithWhereWithoutWorkersInput, PositionUpdateWithoutWorkersInput>, PositionUncheckedUpdateWithoutWorkersInput>
+  }
+
+  export type ProjectUpdateOneRequiredWithoutWorkersNestedInput = {
+    create?: XOR<ProjectCreateWithoutWorkersInput, ProjectUncheckedCreateWithoutWorkersInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutWorkersInput
+    upsert?: ProjectUpsertWithoutWorkersInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutWorkersInput, ProjectUpdateWithoutWorkersInput>, ProjectUncheckedUpdateWithoutWorkersInput>
   }
 
   export type AttendanceUncheckedUpdateManyWithoutWorkerNestedInput = {
@@ -7903,14 +7911,6 @@ export namespace Prisma {
 
   export type EnumAttendanceStatusFieldUpdateOperationsInput = {
     set?: $Enums.AttendanceStatus
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type WorkerUpdateOneRequiredWithoutAttendancesNestedInput = {
@@ -8048,6 +8048,22 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -8150,22 +8166,6 @@ export namespace Prisma {
     _max?: NestedEnumAttendanceStatusFilter<$PrismaModel>
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
   export type WorkerCreateWithoutPositionInput = {
     id?: bigint | number
     name: string
@@ -8174,8 +8174,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
-    project: ProjectCreateNestedOneWithoutWorkersInput
     attendances?: AttendanceCreateNestedManyWithoutWorkerInput
+    project: ProjectCreateNestedOneWithoutWorkersInput
   }
 
   export type WorkerUncheckedCreateWithoutPositionInput = {
@@ -8239,8 +8239,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
-    position: PositionCreateNestedOneWithoutWorkersInput
     attendances?: AttendanceCreateNestedManyWithoutWorkerInput
+    position: PositionCreateNestedOneWithoutWorkersInput
   }
 
   export type WorkerUncheckedCreateWithoutProjectInput = {
@@ -8281,6 +8281,59 @@ export namespace Prisma {
     data: XOR<WorkerUpdateManyMutationInput, WorkerUncheckedUpdateManyWithoutProjectInput>
   }
 
+  export type AttendanceCreateWithoutWorkerInput = {
+    id?: bigint | number
+    date: Date | string
+    wage: number
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
+  }
+
+  export type AttendanceUncheckedCreateWithoutWorkerInput = {
+    id?: bigint | number
+    date: Date | string
+    wage: number
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
+  }
+
+  export type AttendanceCreateOrConnectWithoutWorkerInput = {
+    where: AttendanceWhereUniqueInput
+    create: XOR<AttendanceCreateWithoutWorkerInput, AttendanceUncheckedCreateWithoutWorkerInput>
+  }
+
+  export type AttendanceCreateManyWorkerInputEnvelope = {
+    data: AttendanceCreateManyWorkerInput | AttendanceCreateManyWorkerInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PositionCreateWithoutWorkersInput = {
+    id?: bigint | number
+    name: string
+    dailyWage: number
+    overtimeWage?: number | null
+    castingWage?: number | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type PositionUncheckedCreateWithoutWorkersInput = {
+    id?: bigint | number
+    name: string
+    dailyWage: number
+    overtimeWage?: number | null
+    castingWage?: number | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type PositionCreateOrConnectWithoutWorkersInput = {
+    where: PositionWhereUniqueInput
+    create: XOR<PositionCreateWithoutWorkersInput, PositionUncheckedCreateWithoutWorkersInput>
+  }
+
   export type ProjectCreateWithoutWorkersInput = {
     id?: bigint | number
     name: string
@@ -8310,57 +8363,64 @@ export namespace Prisma {
     create: XOR<ProjectCreateWithoutWorkersInput, ProjectUncheckedCreateWithoutWorkersInput>
   }
 
-  export type PositionCreateWithoutWorkersInput = {
-    id?: bigint | number
-    name: string
-    dailyWage?: number | null
-    overtimeWage?: number | null
-    castingWage?: number | null
-    createdAt?: Date | string | null
-    updatedAt?: Date | string | null
-  }
-
-  export type PositionUncheckedCreateWithoutWorkersInput = {
-    id?: bigint | number
-    name: string
-    dailyWage?: number | null
-    overtimeWage?: number | null
-    castingWage?: number | null
-    createdAt?: Date | string | null
-    updatedAt?: Date | string | null
-  }
-
-  export type PositionCreateOrConnectWithoutWorkersInput = {
-    where: PositionWhereUniqueInput
-    create: XOR<PositionCreateWithoutWorkersInput, PositionUncheckedCreateWithoutWorkersInput>
-  }
-
-  export type AttendanceCreateWithoutWorkerInput = {
-    id?: bigint | number
-    date: Date | string
-    status: $Enums.AttendanceStatus
-    wage: number
-    createdAt?: Date | string | null
-    updatedAt?: Date | string | null
-  }
-
-  export type AttendanceUncheckedCreateWithoutWorkerInput = {
-    id?: bigint | number
-    date: Date | string
-    status: $Enums.AttendanceStatus
-    wage: number
-    createdAt?: Date | string | null
-    updatedAt?: Date | string | null
-  }
-
-  export type AttendanceCreateOrConnectWithoutWorkerInput = {
+  export type AttendanceUpsertWithWhereUniqueWithoutWorkerInput = {
     where: AttendanceWhereUniqueInput
+    update: XOR<AttendanceUpdateWithoutWorkerInput, AttendanceUncheckedUpdateWithoutWorkerInput>
     create: XOR<AttendanceCreateWithoutWorkerInput, AttendanceUncheckedCreateWithoutWorkerInput>
   }
 
-  export type AttendanceCreateManyWorkerInputEnvelope = {
-    data: AttendanceCreateManyWorkerInput | AttendanceCreateManyWorkerInput[]
-    skipDuplicates?: boolean
+  export type AttendanceUpdateWithWhereUniqueWithoutWorkerInput = {
+    where: AttendanceWhereUniqueInput
+    data: XOR<AttendanceUpdateWithoutWorkerInput, AttendanceUncheckedUpdateWithoutWorkerInput>
+  }
+
+  export type AttendanceUpdateManyWithWhereWithoutWorkerInput = {
+    where: AttendanceScalarWhereInput
+    data: XOR<AttendanceUpdateManyMutationInput, AttendanceUncheckedUpdateManyWithoutWorkerInput>
+  }
+
+  export type AttendanceScalarWhereInput = {
+    AND?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+    OR?: AttendanceScalarWhereInput[]
+    NOT?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+    id?: BigIntFilter<"Attendance"> | bigint | number
+    workerId?: BigIntFilter<"Attendance"> | bigint | number
+    date?: DateTimeFilter<"Attendance"> | Date | string
+    wage?: IntFilter<"Attendance"> | number
+    createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
+    updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
+    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
+  }
+
+  export type PositionUpsertWithoutWorkersInput = {
+    update: XOR<PositionUpdateWithoutWorkersInput, PositionUncheckedUpdateWithoutWorkersInput>
+    create: XOR<PositionCreateWithoutWorkersInput, PositionUncheckedCreateWithoutWorkersInput>
+    where?: PositionWhereInput
+  }
+
+  export type PositionUpdateToOneWithWhereWithoutWorkersInput = {
+    where?: PositionWhereInput
+    data: XOR<PositionUpdateWithoutWorkersInput, PositionUncheckedUpdateWithoutWorkersInput>
+  }
+
+  export type PositionUpdateWithoutWorkersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    dailyWage?: IntFieldUpdateOperationsInput | number
+    overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
+    castingWage?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PositionUncheckedUpdateWithoutWorkersInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    dailyWage?: IntFieldUpdateOperationsInput | number
+    overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
+    castingWage?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ProjectUpsertWithoutWorkersInput = {
@@ -8398,66 +8458,6 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
-  export type PositionUpsertWithoutWorkersInput = {
-    update: XOR<PositionUpdateWithoutWorkersInput, PositionUncheckedUpdateWithoutWorkersInput>
-    create: XOR<PositionCreateWithoutWorkersInput, PositionUncheckedCreateWithoutWorkersInput>
-    where?: PositionWhereInput
-  }
-
-  export type PositionUpdateToOneWithWhereWithoutWorkersInput = {
-    where?: PositionWhereInput
-    data: XOR<PositionUpdateWithoutWorkersInput, PositionUncheckedUpdateWithoutWorkersInput>
-  }
-
-  export type PositionUpdateWithoutWorkersInput = {
-    id?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    dailyWage?: NullableIntFieldUpdateOperationsInput | number | null
-    overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
-    castingWage?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type PositionUncheckedUpdateWithoutWorkersInput = {
-    id?: BigIntFieldUpdateOperationsInput | bigint | number
-    name?: StringFieldUpdateOperationsInput | string
-    dailyWage?: NullableIntFieldUpdateOperationsInput | number | null
-    overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
-    castingWage?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type AttendanceUpsertWithWhereUniqueWithoutWorkerInput = {
-    where: AttendanceWhereUniqueInput
-    update: XOR<AttendanceUpdateWithoutWorkerInput, AttendanceUncheckedUpdateWithoutWorkerInput>
-    create: XOR<AttendanceCreateWithoutWorkerInput, AttendanceUncheckedCreateWithoutWorkerInput>
-  }
-
-  export type AttendanceUpdateWithWhereUniqueWithoutWorkerInput = {
-    where: AttendanceWhereUniqueInput
-    data: XOR<AttendanceUpdateWithoutWorkerInput, AttendanceUncheckedUpdateWithoutWorkerInput>
-  }
-
-  export type AttendanceUpdateManyWithWhereWithoutWorkerInput = {
-    where: AttendanceScalarWhereInput
-    data: XOR<AttendanceUpdateManyMutationInput, AttendanceUncheckedUpdateManyWithoutWorkerInput>
-  }
-
-  export type AttendanceScalarWhereInput = {
-    AND?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
-    OR?: AttendanceScalarWhereInput[]
-    NOT?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
-    id?: BigIntFilter<"Attendance"> | bigint | number
-    workerId?: BigIntFilter<"Attendance"> | bigint | number
-    date?: DateTimeFilter<"Attendance"> | Date | string
-    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
-    wage?: IntFilter<"Attendance"> | number
-    createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
-    updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
-  }
-
   export type WorkerCreateWithoutAttendancesInput = {
     id?: bigint | number
     name: string
@@ -8466,8 +8466,8 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
-    project: ProjectCreateNestedOneWithoutWorkersInput
     position: PositionCreateNestedOneWithoutWorkersInput
+    project: ProjectCreateNestedOneWithoutWorkersInput
   }
 
   export type WorkerUncheckedCreateWithoutAttendancesInput = {
@@ -8506,8 +8506,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    project?: ProjectUpdateOneRequiredWithoutWorkersNestedInput
     position?: PositionUpdateOneRequiredWithoutWorkersNestedInput
+    project?: ProjectUpdateOneRequiredWithoutWorkersNestedInput
   }
 
   export type WorkerUncheckedUpdateWithoutAttendancesInput = {
@@ -8541,8 +8541,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    project?: ProjectUpdateOneRequiredWithoutWorkersNestedInput
     attendances?: AttendanceUpdateManyWithoutWorkerNestedInput
+    project?: ProjectUpdateOneRequiredWithoutWorkersNestedInput
   }
 
   export type WorkerUncheckedUpdateWithoutPositionInput = {
@@ -8587,8 +8587,8 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    position?: PositionUpdateOneRequiredWithoutWorkersNestedInput
     attendances?: AttendanceUpdateManyWithoutWorkerNestedInput
+    position?: PositionUpdateOneRequiredWithoutWorkersNestedInput
   }
 
   export type WorkerUncheckedUpdateWithoutProjectInput = {
@@ -8617,37 +8617,37 @@ export namespace Prisma {
   export type AttendanceCreateManyWorkerInput = {
     id?: bigint | number
     date: Date | string
-    status: $Enums.AttendanceStatus
     wage: number
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
   }
 
   export type AttendanceUpdateWithoutWorkerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   }
 
   export type AttendanceUncheckedUpdateWithoutWorkerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   }
 
   export type AttendanceUncheckedUpdateManyWithoutWorkerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   }
 
 
