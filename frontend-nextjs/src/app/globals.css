@@ -588,6 +588,16 @@ ul {
   vertical-align: middle;
 }
 
+.table td:first-child,
+.table th:first-child {
+  padding-left: 20px;
+}
+
+.table td:last-child,
+.table th:last-child {
+  padding-right: 20px;
+}
+
 /* ─── Badges ─────────────────────────────────────────────────────────────────── */
 
 .badge {
@@ -903,8 +913,18 @@ ul {
 
   .table th,
   .table td {
-    padding: 12px 10px;
+    padding: 12px 16px;
     font-size: 13px;
+  }
+
+  .table td:first-child,
+  .table th:first-child {
+    padding-left: 20px;
+  }
+
+  .table td:last-child,
+  .table th:last-child {
+    padding-right: 20px;
   }
 
   .radio-group {
@@ -945,6 +965,12 @@ ul {
 
   .page-title {
     font-size: 14px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px 14px;
+    font-size: 12px;
   }
 
   .page-container {
