@@ -178,7 +178,7 @@ export function PekerjaClient({
             <thead>
               <tr>
                 <th>Nama Pekerja</th>
-                <th>Posisi / Jabatan</th>
+                <th>Jabatan</th>
                 <th>Proyek</th>
                 <th>Status</th>
                 <th>Aksi</th>
