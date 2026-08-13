@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { serializeBigInt } from "@/lib/bigint";
 import { apiHandler } from "@/lib/api-handler";
 import { z } from "zod";
 

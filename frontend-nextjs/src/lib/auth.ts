@@ -39,7 +39,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           throw new Error("Email atau password salah");
-        }`  1`
+        }
 
         // Verifikasi password dengan bcrypt
         const isValid = await bcrypt.compare(credentials.password, user.password);

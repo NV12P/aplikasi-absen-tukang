@@ -54,6 +54,7 @@ export function MasterDataClient() {
 
   useEffect(() => {
     loadPositions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Open modal for create
