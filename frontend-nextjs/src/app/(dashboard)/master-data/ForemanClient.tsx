@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { CustomSelect } from "@/components/ui/CustomSelect";
 
 interface Project {
   id: number;
@@ -252,89 +253,68 @@ export function ForemanClient() {
 
       {/* Modal Form */}
       {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "20px",
-          }}
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            className="card"
-            style={{
-              maxWidth: "500px",
-              width: "100%",
-              padding: "24px",
-              maxHeight: "90vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "20px" }}>
-              {editingId ? "Edit Kepala Tukang" : "Tambah Kepala Tukang"}
-            </h2>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>{editingId ? "Edit Kepala Tukang" : "Tambah Kepala Tukang"}</h2>
+              <button onClick={() => setShowModal(false)} style={{ color: "var(--text-muted)" }}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {/* Proyek (only on create) */}
-              {!editingId && (
-                <div>
-                  <label className="input-label">Proyek</label>
-                  <select
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                {/* Proyek (only on create) */}
+                {!editingId && (
+                  <div className="form-group">
+                    <label>Proyek</label>
+                    <CustomSelect
+                      options={[
+                        { value: "", label: "Pilih Proyek..." },
+                        ...availableProjects.map((project) => ({ 
+                          value: project.id, 
+                          label: `${project.name} - ${project.location}` 
+                        })),
+                      ]}
+                      value={formData.project_id || ""}
+                      onChange={(val) => setFormData({ ...formData, project_id: val ? Number(val) : null })}
+                      placeholder="Pilih Proyek..."
+                    />
+                  </div>
+                )}
+
+                {/* Nama */}
+                <div className="form-group">
+                  <label>Nama Kepala Tukang</label>
+                  <input
+                    type="text"
                     className="input-field"
-                    value={formData.project_id || ""}
-                    onChange={(e) => setFormData({ ...formData, project_id: Number(e.target.value) })}
+                    placeholder="Contoh: Pak Budi"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
-                  >
-                    <option value="">Pilih Proyek</option>
-                    {availableProjects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name} - {project.location}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
-              )}
 
-              {/* Nama */}
-              <div>
-                <label className="input-label">Nama Kepala Tukang</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Contoh: Pak Budi"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
+                {/* Phone */}
+                <div className="form-group">
+                  <label>No. Telepon (Opsional)</label>
+                  <input
+                    type="tel"
+                    className="input-field"
+                    placeholder="08123456789"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  />
+                </div>
               </div>
 
-              {/* Phone */}
-              <div>
-                <label className="input-label">No. Telepon (Opsional)</label>
-                <input
-                  type="tel"
-                  className="input-field"
-                  placeholder="08123456789"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-              </div>
-
-              {/* Buttons */}
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+              <div className="modal-footer">
                 <button
                   type="button"
                   className="btn-secondary"
-                  style={{ flex: 1, padding: "10px" }}
                   onClick={() => setShowModal(false)}
                   disabled={submitting}
                 >
@@ -343,7 +323,6 @@ export function ForemanClient() {
                 <button
                   type="submit"
                   className="btn-primary"
-                  style={{ flex: 1, padding: "10px" }}
                   disabled={submitting}
                 >
                   {submitting ? "Menyimpan..." : "Simpan"}

@@ -217,103 +217,83 @@ export function MasterDataClient() {
 
       {/* Modal Form */}
       {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "20px",
-          }}
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            className="card"
-            style={{
-              maxWidth: "500px",
-              width: "100%",
-              padding: "24px",
-              maxHeight: "90vh",
-              overflowY: "auto",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "20px" }}>
-              {editingId ? "Edit Jabatan" : "Tambah Jabatan"}
-            </h2>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>{editingId ? "Edit Jabatan" : "Tambah Jabatan"}</h2>
+              <button onClick={() => setShowModal(false)} style={{ color: "var(--text-muted)" }}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {/* Nama Jabatan */}
-              <div>
-                <label className="input-label">Nama Jabatan</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="Contoh: Mandor, Tukang Batu, Helper"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body">
+                {/* Nama Jabatan */}
+                <div className="form-group">
+                  <label>Nama Jabatan</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Contoh: Mandor, Tukang Batu, Helper"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                {/* Upah Harian */}
+                <div className="form-group">
+                  <label>Upah Harian (Rp)</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    placeholder="150000"
+                    value={formData.daily_wage || ""}
+                    onChange={(e) => setFormData({ ...formData, daily_wage: Number(e.target.value) })}
+                    required
+                    min="0"
+                  />
+                </div>
+
+                {/* Upah Lembur */}
+                <div className="form-group">
+                  <label>Upah Lembur (Rp) - Opsional</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    placeholder="200000 (kosongkan jika tidak ada)"
+                    value={formData.overtime_wage ?? ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      overtime_wage: e.target.value === "" ? null : Number(e.target.value) 
+                    })}
+                    min="0"
+                  />
+                </div>
+
+                {/* Upah Cor */}
+                <div className="form-group">
+                  <label>Upah Cor (Rp) - Opsional</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    placeholder="250000 (kosongkan jika tidak ada)"
+                    value={formData.casting_wage ?? ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      casting_wage: e.target.value === "" ? null : Number(e.target.value) 
+                    })}
+                    min="0"
+                  />
+                </div>
               </div>
 
-              {/* Upah Harian */}
-              <div>
-                <label className="input-label">Upah Harian (Rp)</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="150000"
-                  value={formData.daily_wage || ""}
-                  onChange={(e) => setFormData({ ...formData, daily_wage: Number(e.target.value) })}
-                  required
-                  min="0"
-                />
-              </div>
-
-              {/* Upah Lembur */}
-              <div>
-                <label className="input-label">Upah Lembur (Rp) - Opsional</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="200000 (kosongkan jika tidak ada)"
-                  value={formData.overtime_wage ?? ""}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    overtime_wage: e.target.value === "" ? null : Number(e.target.value) 
-                  })}
-                  min="0"
-                />
-              </div>
-
-              {/* Upah Cor */}
-              <div>
-                <label className="input-label">Upah Cor (Rp) - Opsional</label>
-                <input
-                  type="number"
-                  className="input-field"
-                  placeholder="250000 (kosongkan jika tidak ada)"
-                  value={formData.casting_wage ?? ""}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    casting_wage: e.target.value === "" ? null : Number(e.target.value) 
-                  })}
-                  min="0"
-                />
-              </div>
-
-              {/* Buttons */}
-              <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+              <div className="modal-footer">
                 <button
                   type="button"
                   className="btn-secondary"
-                  style={{ flex: 1, padding: "10px" }}
                   onClick={() => setShowModal(false)}
                   disabled={submitting}
                 >
@@ -322,7 +302,6 @@ export function MasterDataClient() {
                 <button
                   type="submit"
                   className="btn-primary"
-                  style={{ flex: 1, padding: "10px" }}
                   disabled={submitting}
                 >
                   {submitting ? "Menyimpan..." : "Simpan"}
