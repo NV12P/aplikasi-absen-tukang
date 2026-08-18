@@ -188,39 +188,7 @@ export function ForemanClient() {
         </div>
       </div>
 
-      {/* Info Banner */}
-      {availableProjects.length === 0 && foremen.length > 0 && (
-        <div
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "#FFF4E5",
-            border: "1px solid #FFE0B2",
-            borderRadius: "8px",
-            marginBottom: "16px",
-            fontSize: "14px",
-            color: "#E65100",
-          }}
-        >
-          ℹ️ Semua proyek aktif sudah memiliki kepala tukang
-        </div>
-      )}
 
-      {/* Info Banner - No Projects */}
-      {projects.length === 0 && !loading && (
-        <div
-          style={{
-            padding: "12px 16px",
-            backgroundColor: "#E3F2FD",
-            border: "1px solid #90CAF9",
-            borderRadius: "8px",
-            marginBottom: "16px",
-            fontSize: "14px",
-            color: "#1565C0",
-          }}
-        >
-          ℹ️ Belum ada proyek. Buat proyek terlebih dahulu di Master Data Proyek.
-        </div>
-      )}
 
       {/* Table Card */}
       <div className="card" style={{ padding: "0" }}>
