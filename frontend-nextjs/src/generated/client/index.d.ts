@@ -30,6 +30,11 @@ export type Position = $Result.DefaultSelection<Prisma.$PositionPayload>
  */
 export type Project = $Result.DefaultSelection<Prisma.$ProjectPayload>
 /**
+ * Model Foreman
+ * Tabel foremen — kepala tukang per proyek (tidak ikut absensi)
+ */
+export type Foreman = $Result.DefaultSelection<Prisma.$ForemanPayload>
+/**
  * Model Worker
  * Tabel workers — data pekerja
  */
@@ -211,6 +216,16 @@ export class PrismaClient<
     * ```
     */
   get project(): Prisma.ProjectDelegate<ExtArgs>;
+
+  /**
+   * `prisma.foreman`: Exposes CRUD operations for the **Foreman** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Foremen
+    * const foremen = await prisma.foreman.findMany()
+    * ```
+    */
+  get foreman(): Prisma.ForemanDelegate<ExtArgs>;
 
   /**
    * `prisma.worker`: Exposes CRUD operations for the **Worker** model.
@@ -675,6 +690,7 @@ export namespace Prisma {
     AdminUser: 'AdminUser',
     Position: 'Position',
     Project: 'Project',
+    Foreman: 'Foreman',
     Worker: 'Worker',
     Attendance: 'Attendance'
   };
@@ -692,7 +708,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "adminUser" | "position" | "project" | "worker" | "attendance"
+      modelProps: "adminUser" | "position" | "project" | "foreman" | "worker" | "attendance"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -903,6 +919,76 @@ export namespace Prisma {
           count: {
             args: Prisma.ProjectCountArgs<ExtArgs>
             result: $Utils.Optional<ProjectCountAggregateOutputType> | number
+          }
+        }
+      }
+      Foreman: {
+        payload: Prisma.$ForemanPayload<ExtArgs>
+        fields: Prisma.ForemanFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ForemanFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ForemanFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>
+          }
+          findFirst: {
+            args: Prisma.ForemanFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ForemanFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>
+          }
+          findMany: {
+            args: Prisma.ForemanFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>[]
+          }
+          create: {
+            args: Prisma.ForemanCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>
+          }
+          createMany: {
+            args: Prisma.ForemanCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ForemanCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>[]
+          }
+          delete: {
+            args: Prisma.ForemanDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>
+          }
+          update: {
+            args: Prisma.ForemanUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>
+          }
+          deleteMany: {
+            args: Prisma.ForemanDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ForemanUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ForemanUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForemanPayload>
+          }
+          aggregate: {
+            args: Prisma.ForemanAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateForeman>
+          }
+          groupBy: {
+            args: Prisma.ForemanGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ForemanGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ForemanCountArgs<ExtArgs>
+            result: $Utils.Optional<ForemanCountAggregateOutputType> | number
           }
         }
       }
@@ -3438,6 +3524,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     workers?: boolean | Project$workersArgs<ExtArgs>
+    foreman?: boolean | Project$foremanArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
 
@@ -3467,6 +3554,7 @@ export namespace Prisma {
 
   export type ProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     workers?: boolean | Project$workersArgs<ExtArgs>
+    foreman?: boolean | Project$foremanArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -3475,6 +3563,7 @@ export namespace Prisma {
     name: "Project"
     objects: {
       workers: Prisma.$WorkerPayload<ExtArgs>[]
+      foreman: Prisma.$ForemanPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
@@ -3851,6 +3940,7 @@ export namespace Prisma {
   export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     workers<T extends Project$workersArgs<ExtArgs> = {}>(args?: Subset<T, Project$workersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkerPayload<ExtArgs>, T, "findMany"> | Null>
+    foreman<T extends Project$foremanArgs<ExtArgs> = {}>(args?: Subset<T, Project$foremanArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4223,6 +4313,21 @@ export namespace Prisma {
   }
 
   /**
+   * Project.foreman
+   */
+  export type Project$foremanArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    where?: ForemanWhereInput
+  }
+
+  /**
    * Project without action
    */
   export type ProjectDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4234,6 +4339,989 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ProjectInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Foreman
+   */
+
+  export type AggregateForeman = {
+    _count: ForemanCountAggregateOutputType | null
+    _avg: ForemanAvgAggregateOutputType | null
+    _sum: ForemanSumAggregateOutputType | null
+    _min: ForemanMinAggregateOutputType | null
+    _max: ForemanMaxAggregateOutputType | null
+  }
+
+  export type ForemanAvgAggregateOutputType = {
+    id: number | null
+    projectId: number | null
+  }
+
+  export type ForemanSumAggregateOutputType = {
+    id: bigint | null
+    projectId: bigint | null
+  }
+
+  export type ForemanMinAggregateOutputType = {
+    id: bigint | null
+    projectId: bigint | null
+    name: string | null
+    phone: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ForemanMaxAggregateOutputType = {
+    id: bigint | null
+    projectId: bigint | null
+    name: string | null
+    phone: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ForemanCountAggregateOutputType = {
+    id: number
+    projectId: number
+    name: number
+    phone: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ForemanAvgAggregateInputType = {
+    id?: true
+    projectId?: true
+  }
+
+  export type ForemanSumAggregateInputType = {
+    id?: true
+    projectId?: true
+  }
+
+  export type ForemanMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    phone?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ForemanMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    phone?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ForemanCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    name?: true
+    phone?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ForemanAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Foreman to aggregate.
+     */
+    where?: ForemanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Foremen to fetch.
+     */
+    orderBy?: ForemanOrderByWithRelationInput | ForemanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ForemanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Foremen from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Foremen.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Foremen
+    **/
+    _count?: true | ForemanCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ForemanAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ForemanSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ForemanMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ForemanMaxAggregateInputType
+  }
+
+  export type GetForemanAggregateType<T extends ForemanAggregateArgs> = {
+        [P in keyof T & keyof AggregateForeman]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateForeman[P]>
+      : GetScalarType<T[P], AggregateForeman[P]>
+  }
+
+
+
+
+  export type ForemanGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForemanWhereInput
+    orderBy?: ForemanOrderByWithAggregationInput | ForemanOrderByWithAggregationInput[]
+    by: ForemanScalarFieldEnum[] | ForemanScalarFieldEnum
+    having?: ForemanScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ForemanCountAggregateInputType | true
+    _avg?: ForemanAvgAggregateInputType
+    _sum?: ForemanSumAggregateInputType
+    _min?: ForemanMinAggregateInputType
+    _max?: ForemanMaxAggregateInputType
+  }
+
+  export type ForemanGroupByOutputType = {
+    id: bigint
+    projectId: bigint
+    name: string
+    phone: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    _count: ForemanCountAggregateOutputType | null
+    _avg: ForemanAvgAggregateOutputType | null
+    _sum: ForemanSumAggregateOutputType | null
+    _min: ForemanMinAggregateOutputType | null
+    _max: ForemanMaxAggregateOutputType | null
+  }
+
+  type GetForemanGroupByPayload<T extends ForemanGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ForemanGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ForemanGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ForemanGroupByOutputType[P]>
+            : GetScalarType<T[P], ForemanGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ForemanSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    phone?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["foreman"]>
+
+  export type ForemanSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    phone?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["foreman"]>
+
+  export type ForemanSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    name?: boolean
+    phone?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ForemanInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+  export type ForemanIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $ForemanPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Foreman"
+    objects: {
+      project: Prisma.$ProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: bigint
+      projectId: bigint
+      name: string
+      phone: string | null
+      createdAt: Date | null
+      updatedAt: Date | null
+    }, ExtArgs["result"]["foreman"]>
+    composites: {}
+  }
+
+  type ForemanGetPayload<S extends boolean | null | undefined | ForemanDefaultArgs> = $Result.GetResult<Prisma.$ForemanPayload, S>
+
+  type ForemanCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ForemanFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ForemanCountAggregateInputType | true
+    }
+
+  export interface ForemanDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Foreman'], meta: { name: 'Foreman' } }
+    /**
+     * Find zero or one Foreman that matches the filter.
+     * @param {ForemanFindUniqueArgs} args - Arguments to find a Foreman
+     * @example
+     * // Get one Foreman
+     * const foreman = await prisma.foreman.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ForemanFindUniqueArgs>(args: SelectSubset<T, ForemanFindUniqueArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Foreman that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ForemanFindUniqueOrThrowArgs} args - Arguments to find a Foreman
+     * @example
+     * // Get one Foreman
+     * const foreman = await prisma.foreman.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ForemanFindUniqueOrThrowArgs>(args: SelectSubset<T, ForemanFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Foreman that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanFindFirstArgs} args - Arguments to find a Foreman
+     * @example
+     * // Get one Foreman
+     * const foreman = await prisma.foreman.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ForemanFindFirstArgs>(args?: SelectSubset<T, ForemanFindFirstArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Foreman that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanFindFirstOrThrowArgs} args - Arguments to find a Foreman
+     * @example
+     * // Get one Foreman
+     * const foreman = await prisma.foreman.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ForemanFindFirstOrThrowArgs>(args?: SelectSubset<T, ForemanFindFirstOrThrowArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Foremen that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Foremen
+     * const foremen = await prisma.foreman.findMany()
+     * 
+     * // Get first 10 Foremen
+     * const foremen = await prisma.foreman.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const foremanWithIdOnly = await prisma.foreman.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ForemanFindManyArgs>(args?: SelectSubset<T, ForemanFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Foreman.
+     * @param {ForemanCreateArgs} args - Arguments to create a Foreman.
+     * @example
+     * // Create one Foreman
+     * const Foreman = await prisma.foreman.create({
+     *   data: {
+     *     // ... data to create a Foreman
+     *   }
+     * })
+     * 
+     */
+    create<T extends ForemanCreateArgs>(args: SelectSubset<T, ForemanCreateArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Foremen.
+     * @param {ForemanCreateManyArgs} args - Arguments to create many Foremen.
+     * @example
+     * // Create many Foremen
+     * const foreman = await prisma.foreman.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ForemanCreateManyArgs>(args?: SelectSubset<T, ForemanCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Foremen and returns the data saved in the database.
+     * @param {ForemanCreateManyAndReturnArgs} args - Arguments to create many Foremen.
+     * @example
+     * // Create many Foremen
+     * const foreman = await prisma.foreman.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Foremen and only return the `id`
+     * const foremanWithIdOnly = await prisma.foreman.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ForemanCreateManyAndReturnArgs>(args?: SelectSubset<T, ForemanCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Foreman.
+     * @param {ForemanDeleteArgs} args - Arguments to delete one Foreman.
+     * @example
+     * // Delete one Foreman
+     * const Foreman = await prisma.foreman.delete({
+     *   where: {
+     *     // ... filter to delete one Foreman
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ForemanDeleteArgs>(args: SelectSubset<T, ForemanDeleteArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Foreman.
+     * @param {ForemanUpdateArgs} args - Arguments to update one Foreman.
+     * @example
+     * // Update one Foreman
+     * const foreman = await prisma.foreman.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ForemanUpdateArgs>(args: SelectSubset<T, ForemanUpdateArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Foremen.
+     * @param {ForemanDeleteManyArgs} args - Arguments to filter Foremen to delete.
+     * @example
+     * // Delete a few Foremen
+     * const { count } = await prisma.foreman.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ForemanDeleteManyArgs>(args?: SelectSubset<T, ForemanDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Foremen.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Foremen
+     * const foreman = await prisma.foreman.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ForemanUpdateManyArgs>(args: SelectSubset<T, ForemanUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Foreman.
+     * @param {ForemanUpsertArgs} args - Arguments to update or create a Foreman.
+     * @example
+     * // Update or create a Foreman
+     * const foreman = await prisma.foreman.upsert({
+     *   create: {
+     *     // ... data to create a Foreman
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Foreman we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ForemanUpsertArgs>(args: SelectSubset<T, ForemanUpsertArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Foremen.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanCountArgs} args - Arguments to filter Foremen to count.
+     * @example
+     * // Count the number of Foremen
+     * const count = await prisma.foreman.count({
+     *   where: {
+     *     // ... the filter for the Foremen we want to count
+     *   }
+     * })
+    **/
+    count<T extends ForemanCountArgs>(
+      args?: Subset<T, ForemanCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ForemanCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Foreman.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ForemanAggregateArgs>(args: Subset<T, ForemanAggregateArgs>): Prisma.PrismaPromise<GetForemanAggregateType<T>>
+
+    /**
+     * Group by Foreman.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForemanGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ForemanGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ForemanGroupByArgs['orderBy'] }
+        : { orderBy?: ForemanGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ForemanGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetForemanGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Foreman model
+   */
+  readonly fields: ForemanFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Foreman.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ForemanClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Foreman model
+   */ 
+  interface ForemanFieldRefs {
+    readonly id: FieldRef<"Foreman", 'BigInt'>
+    readonly projectId: FieldRef<"Foreman", 'BigInt'>
+    readonly name: FieldRef<"Foreman", 'String'>
+    readonly phone: FieldRef<"Foreman", 'String'>
+    readonly createdAt: FieldRef<"Foreman", 'DateTime'>
+    readonly updatedAt: FieldRef<"Foreman", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Foreman findUnique
+   */
+  export type ForemanFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * Filter, which Foreman to fetch.
+     */
+    where: ForemanWhereUniqueInput
+  }
+
+  /**
+   * Foreman findUniqueOrThrow
+   */
+  export type ForemanFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * Filter, which Foreman to fetch.
+     */
+    where: ForemanWhereUniqueInput
+  }
+
+  /**
+   * Foreman findFirst
+   */
+  export type ForemanFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * Filter, which Foreman to fetch.
+     */
+    where?: ForemanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Foremen to fetch.
+     */
+    orderBy?: ForemanOrderByWithRelationInput | ForemanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Foremen.
+     */
+    cursor?: ForemanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Foremen from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Foremen.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Foremen.
+     */
+    distinct?: ForemanScalarFieldEnum | ForemanScalarFieldEnum[]
+  }
+
+  /**
+   * Foreman findFirstOrThrow
+   */
+  export type ForemanFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * Filter, which Foreman to fetch.
+     */
+    where?: ForemanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Foremen to fetch.
+     */
+    orderBy?: ForemanOrderByWithRelationInput | ForemanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Foremen.
+     */
+    cursor?: ForemanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Foremen from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Foremen.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Foremen.
+     */
+    distinct?: ForemanScalarFieldEnum | ForemanScalarFieldEnum[]
+  }
+
+  /**
+   * Foreman findMany
+   */
+  export type ForemanFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * Filter, which Foremen to fetch.
+     */
+    where?: ForemanWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Foremen to fetch.
+     */
+    orderBy?: ForemanOrderByWithRelationInput | ForemanOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Foremen.
+     */
+    cursor?: ForemanWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Foremen from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Foremen.
+     */
+    skip?: number
+    distinct?: ForemanScalarFieldEnum | ForemanScalarFieldEnum[]
+  }
+
+  /**
+   * Foreman create
+   */
+  export type ForemanCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Foreman.
+     */
+    data: XOR<ForemanCreateInput, ForemanUncheckedCreateInput>
+  }
+
+  /**
+   * Foreman createMany
+   */
+  export type ForemanCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Foremen.
+     */
+    data: ForemanCreateManyInput | ForemanCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Foreman createManyAndReturn
+   */
+  export type ForemanCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Foremen.
+     */
+    data: ForemanCreateManyInput | ForemanCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Foreman update
+   */
+  export type ForemanUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Foreman.
+     */
+    data: XOR<ForemanUpdateInput, ForemanUncheckedUpdateInput>
+    /**
+     * Choose, which Foreman to update.
+     */
+    where: ForemanWhereUniqueInput
+  }
+
+  /**
+   * Foreman updateMany
+   */
+  export type ForemanUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Foremen.
+     */
+    data: XOR<ForemanUpdateManyMutationInput, ForemanUncheckedUpdateManyInput>
+    /**
+     * Filter which Foremen to update
+     */
+    where?: ForemanWhereInput
+  }
+
+  /**
+   * Foreman upsert
+   */
+  export type ForemanUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Foreman to update in case it exists.
+     */
+    where: ForemanWhereUniqueInput
+    /**
+     * In case the Foreman found by the `where` argument doesn't exist, create a new Foreman with this data.
+     */
+    create: XOR<ForemanCreateInput, ForemanUncheckedCreateInput>
+    /**
+     * In case the Foreman was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ForemanUpdateInput, ForemanUncheckedUpdateInput>
+  }
+
+  /**
+   * Foreman delete
+   */
+  export type ForemanDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
+    /**
+     * Filter which Foreman to delete.
+     */
+    where: ForemanWhereUniqueInput
+  }
+
+  /**
+   * Foreman deleteMany
+   */
+  export type ForemanDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Foremen to delete
+     */
+    where?: ForemanWhereInput
+  }
+
+  /**
+   * Foreman without action
+   */
+  export type ForemanDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Foreman
+     */
+    select?: ForemanSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForemanInclude<ExtArgs> | null
   }
 
 
@@ -6345,6 +7433,18 @@ export namespace Prisma {
   export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
+  export const ForemanScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    name: 'name',
+    phone: 'phone',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ForemanScalarFieldEnum = (typeof ForemanScalarFieldEnum)[keyof typeof ForemanScalarFieldEnum]
+
+
   export const WorkerScalarFieldEnum: {
     id: 'id',
     projectId: 'projectId',
@@ -6634,6 +7734,7 @@ export namespace Prisma {
     createdAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     workers?: WorkerListRelationFilter
+    foreman?: XOR<ForemanNullableRelationFilter, ForemanWhereInput> | null
   }
 
   export type ProjectOrderByWithRelationInput = {
@@ -6647,6 +7748,7 @@ export namespace Prisma {
     createdAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrderInput | SortOrder
     workers?: WorkerOrderByRelationAggregateInput
+    foreman?: ForemanOrderByWithRelationInput
   }
 
   export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -6663,6 +7765,7 @@ export namespace Prisma {
     createdAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     workers?: WorkerListRelationFilter
+    foreman?: XOR<ForemanNullableRelationFilter, ForemanWhereInput> | null
   }, "id">
 
   export type ProjectOrderByWithAggregationInput = {
@@ -6695,6 +7798,68 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"Project"> | boolean
     createdAt?: DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
     updatedAt?: DateTimeNullableWithAggregatesFilter<"Project"> | Date | string | null
+  }
+
+  export type ForemanWhereInput = {
+    AND?: ForemanWhereInput | ForemanWhereInput[]
+    OR?: ForemanWhereInput[]
+    NOT?: ForemanWhereInput | ForemanWhereInput[]
+    id?: BigIntFilter<"Foreman"> | bigint | number
+    projectId?: BigIntFilter<"Foreman"> | bigint | number
+    name?: StringFilter<"Foreman"> | string
+    phone?: StringNullableFilter<"Foreman"> | string | null
+    createdAt?: DateTimeNullableFilter<"Foreman"> | Date | string | null
+    updatedAt?: DateTimeNullableFilter<"Foreman"> | Date | string | null
+    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
+  }
+
+  export type ForemanOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    phone?: SortOrderInput | SortOrder
+    createdAt?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    project?: ProjectOrderByWithRelationInput
+  }
+
+  export type ForemanWhereUniqueInput = Prisma.AtLeast<{
+    id?: bigint | number
+    projectId?: bigint | number
+    AND?: ForemanWhereInput | ForemanWhereInput[]
+    OR?: ForemanWhereInput[]
+    NOT?: ForemanWhereInput | ForemanWhereInput[]
+    name?: StringFilter<"Foreman"> | string
+    phone?: StringNullableFilter<"Foreman"> | string | null
+    createdAt?: DateTimeNullableFilter<"Foreman"> | Date | string | null
+    updatedAt?: DateTimeNullableFilter<"Foreman"> | Date | string | null
+    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
+  }, "id" | "projectId">
+
+  export type ForemanOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    phone?: SortOrderInput | SortOrder
+    createdAt?: SortOrderInput | SortOrder
+    updatedAt?: SortOrderInput | SortOrder
+    _count?: ForemanCountOrderByAggregateInput
+    _avg?: ForemanAvgOrderByAggregateInput
+    _max?: ForemanMaxOrderByAggregateInput
+    _min?: ForemanMinOrderByAggregateInput
+    _sum?: ForemanSumOrderByAggregateInput
+  }
+
+  export type ForemanScalarWhereWithAggregatesInput = {
+    AND?: ForemanScalarWhereWithAggregatesInput | ForemanScalarWhereWithAggregatesInput[]
+    OR?: ForemanScalarWhereWithAggregatesInput[]
+    NOT?: ForemanScalarWhereWithAggregatesInput | ForemanScalarWhereWithAggregatesInput[]
+    id?: BigIntWithAggregatesFilter<"Foreman"> | bigint | number
+    projectId?: BigIntWithAggregatesFilter<"Foreman"> | bigint | number
+    name?: StringWithAggregatesFilter<"Foreman"> | string
+    phone?: StringNullableWithAggregatesFilter<"Foreman"> | string | null
+    createdAt?: DateTimeNullableWithAggregatesFilter<"Foreman"> | Date | string | null
+    updatedAt?: DateTimeNullableWithAggregatesFilter<"Foreman"> | Date | string | null
   }
 
   export type WorkerWhereInput = {
@@ -6996,6 +8161,7 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     workers?: WorkerCreateNestedManyWithoutProjectInput
+    foreman?: ForemanCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateInput = {
@@ -7009,6 +8175,7 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     workers?: WorkerUncheckedCreateNestedManyWithoutProjectInput
+    foreman?: ForemanUncheckedCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUpdateInput = {
@@ -7022,6 +8189,7 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     workers?: WorkerUpdateManyWithoutProjectNestedInput
+    foreman?: ForemanUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateInput = {
@@ -7035,6 +8203,7 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     workers?: WorkerUncheckedUpdateManyWithoutProjectNestedInput
+    foreman?: ForemanUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectCreateManyInput = {
@@ -7069,6 +8238,68 @@ export namespace Prisma {
     startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ForemanCreateInput = {
+    id?: bigint | number
+    name: string
+    phone?: string | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    project: ProjectCreateNestedOneWithoutForemanInput
+  }
+
+  export type ForemanUncheckedCreateInput = {
+    id?: bigint | number
+    projectId: bigint | number
+    name: string
+    phone?: string | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type ForemanUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    project?: ProjectUpdateOneRequiredWithoutForemanNestedInput
+  }
+
+  export type ForemanUncheckedUpdateInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    projectId?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ForemanCreateManyInput = {
+    id?: bigint | number
+    projectId: bigint | number
+    name: string
+    phone?: string | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type ForemanUpdateManyMutationInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ForemanUncheckedUpdateManyInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    projectId?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
@@ -7498,6 +8729,11 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type ForemanNullableRelationFilter = {
+    is?: ForemanWhereInput | null
+    isNot?: ForemanWhereInput | null
+  }
+
   export type ProjectCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -7568,6 +8804,48 @@ export namespace Prisma {
     _max?: NestedBoolFilter<$PrismaModel>
   }
 
+  export type ProjectRelationFilter = {
+    is?: ProjectWhereInput
+    isNot?: ProjectWhereInput
+  }
+
+  export type ForemanCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    phone?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForemanAvgOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+  }
+
+  export type ForemanMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    phone?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForemanMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    name?: SortOrder
+    phone?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ForemanSumOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+  }
+
   export type AttendanceListRelationFilter = {
     every?: AttendanceWhereInput
     some?: AttendanceWhereInput
@@ -7577,11 +8855,6 @@ export namespace Prisma {
   export type PositionRelationFilter = {
     is?: PositionWhereInput
     isNot?: PositionWhereInput
-  }
-
-  export type ProjectRelationFilter = {
-    is?: ProjectWhereInput
-    isNot?: ProjectWhereInput
   }
 
   export type AttendanceOrderByRelationAggregateInput = {
@@ -7790,11 +9063,23 @@ export namespace Prisma {
     connect?: WorkerWhereUniqueInput | WorkerWhereUniqueInput[]
   }
 
+  export type ForemanCreateNestedOneWithoutProjectInput = {
+    create?: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ForemanCreateOrConnectWithoutProjectInput
+    connect?: ForemanWhereUniqueInput
+  }
+
   export type WorkerUncheckedCreateNestedManyWithoutProjectInput = {
     create?: XOR<WorkerCreateWithoutProjectInput, WorkerUncheckedCreateWithoutProjectInput> | WorkerCreateWithoutProjectInput[] | WorkerUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: WorkerCreateOrConnectWithoutProjectInput | WorkerCreateOrConnectWithoutProjectInput[]
     createMany?: WorkerCreateManyProjectInputEnvelope
     connect?: WorkerWhereUniqueInput | WorkerWhereUniqueInput[]
+  }
+
+  export type ForemanUncheckedCreateNestedOneWithoutProjectInput = {
+    create?: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ForemanCreateOrConnectWithoutProjectInput
+    connect?: ForemanWhereUniqueInput
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -7819,6 +9104,16 @@ export namespace Prisma {
     deleteMany?: WorkerScalarWhereInput | WorkerScalarWhereInput[]
   }
 
+  export type ForemanUpdateOneWithoutProjectNestedInput = {
+    create?: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ForemanCreateOrConnectWithoutProjectInput
+    upsert?: ForemanUpsertWithoutProjectInput
+    disconnect?: ForemanWhereInput | boolean
+    delete?: ForemanWhereInput | boolean
+    connect?: ForemanWhereUniqueInput
+    update?: XOR<XOR<ForemanUpdateToOneWithWhereWithoutProjectInput, ForemanUpdateWithoutProjectInput>, ForemanUncheckedUpdateWithoutProjectInput>
+  }
+
   export type WorkerUncheckedUpdateManyWithoutProjectNestedInput = {
     create?: XOR<WorkerCreateWithoutProjectInput, WorkerUncheckedCreateWithoutProjectInput> | WorkerCreateWithoutProjectInput[] | WorkerUncheckedCreateWithoutProjectInput[]
     connectOrCreate?: WorkerCreateOrConnectWithoutProjectInput | WorkerCreateOrConnectWithoutProjectInput[]
@@ -7831,6 +9126,30 @@ export namespace Prisma {
     update?: WorkerUpdateWithWhereUniqueWithoutProjectInput | WorkerUpdateWithWhereUniqueWithoutProjectInput[]
     updateMany?: WorkerUpdateManyWithWhereWithoutProjectInput | WorkerUpdateManyWithWhereWithoutProjectInput[]
     deleteMany?: WorkerScalarWhereInput | WorkerScalarWhereInput[]
+  }
+
+  export type ForemanUncheckedUpdateOneWithoutProjectNestedInput = {
+    create?: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: ForemanCreateOrConnectWithoutProjectInput
+    upsert?: ForemanUpsertWithoutProjectInput
+    disconnect?: ForemanWhereInput | boolean
+    delete?: ForemanWhereInput | boolean
+    connect?: ForemanWhereUniqueInput
+    update?: XOR<XOR<ForemanUpdateToOneWithWhereWithoutProjectInput, ForemanUpdateWithoutProjectInput>, ForemanUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type ProjectCreateNestedOneWithoutForemanInput = {
+    create?: XOR<ProjectCreateWithoutForemanInput, ProjectUncheckedCreateWithoutForemanInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutForemanInput
+    connect?: ProjectWhereUniqueInput
+  }
+
+  export type ProjectUpdateOneRequiredWithoutForemanNestedInput = {
+    create?: XOR<ProjectCreateWithoutForemanInput, ProjectUncheckedCreateWithoutForemanInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutForemanInput
+    upsert?: ProjectUpsertWithoutForemanInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutForemanInput, ProjectUpdateWithoutForemanInput>, ProjectUncheckedUpdateWithoutForemanInput>
   }
 
   export type AttendanceCreateNestedManyWithoutWorkerInput = {
@@ -8265,6 +9584,27 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ForemanCreateWithoutProjectInput = {
+    id?: bigint | number
+    name: string
+    phone?: string | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type ForemanUncheckedCreateWithoutProjectInput = {
+    id?: bigint | number
+    name: string
+    phone?: string | null
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+  }
+
+  export type ForemanCreateOrConnectWithoutProjectInput = {
+    where: ForemanWhereUniqueInput
+    create: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
+  }
+
   export type WorkerUpsertWithWhereUniqueWithoutProjectInput = {
     where: WorkerWhereUniqueInput
     update: XOR<WorkerUpdateWithoutProjectInput, WorkerUncheckedUpdateWithoutProjectInput>
@@ -8279,6 +9619,101 @@ export namespace Prisma {
   export type WorkerUpdateManyWithWhereWithoutProjectInput = {
     where: WorkerScalarWhereInput
     data: XOR<WorkerUpdateManyMutationInput, WorkerUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type ForemanUpsertWithoutProjectInput = {
+    update: XOR<ForemanUpdateWithoutProjectInput, ForemanUncheckedUpdateWithoutProjectInput>
+    create: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
+    where?: ForemanWhereInput
+  }
+
+  export type ForemanUpdateToOneWithWhereWithoutProjectInput = {
+    where?: ForemanWhereInput
+    data: XOR<ForemanUpdateWithoutProjectInput, ForemanUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type ForemanUpdateWithoutProjectInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ForemanUncheckedUpdateWithoutProjectInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ProjectCreateWithoutForemanInput = {
+    id?: bigint | number
+    name: string
+    location: string
+    description?: string | null
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    workers?: WorkerCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutForemanInput = {
+    id?: bigint | number
+    name: string
+    location: string
+    description?: string | null
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    workers?: WorkerUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutForemanInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutForemanInput, ProjectUncheckedCreateWithoutForemanInput>
+  }
+
+  export type ProjectUpsertWithoutForemanInput = {
+    update: XOR<ProjectUpdateWithoutForemanInput, ProjectUncheckedUpdateWithoutForemanInput>
+    create: XOR<ProjectCreateWithoutForemanInput, ProjectUncheckedCreateWithoutForemanInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutForemanInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutForemanInput, ProjectUncheckedUpdateWithoutForemanInput>
+  }
+
+  export type ProjectUpdateWithoutForemanInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workers?: WorkerUpdateManyWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutForemanInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workers?: WorkerUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type AttendanceCreateWithoutWorkerInput = {
@@ -8344,6 +9779,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    foreman?: ForemanCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutWorkersInput = {
@@ -8356,6 +9792,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    foreman?: ForemanUncheckedCreateNestedOneWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutWorkersInput = {
@@ -8444,6 +9881,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    foreman?: ForemanUpdateOneWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutWorkersInput = {
@@ -8456,6 +9894,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    foreman?: ForemanUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type WorkerCreateWithoutAttendancesInput = {
@@ -8679,6 +10118,10 @@ export namespace Prisma {
      * @deprecated Use ProjectDefaultArgs instead
      */
     export type ProjectArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProjectDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ForemanDefaultArgs instead
+     */
+    export type ForemanArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ForemanDefaultArgs<ExtArgs>
     /**
      * @deprecated Use WorkerDefaultArgs instead
      */

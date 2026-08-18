@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { serializeBigInt } from "@/lib/bigint";
 import { apiHandler } from "@/lib/api-handler";
 import { z } from "zod";
 
@@ -19,7 +18,21 @@ export const GET = apiHandler(async () => {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const projects = await prisma.project.findMany({ orderBy: { createdAt: "desc" } });
-  const res = NextResponse.json({ data: serializeBigInt(projects) });
+  
+  // Map camelCase ke snake_case untuk frontend
+  const mapped = projects.map((p) => ({
+    id: Number(p.id),
+    name: p.name,
+    location: p.location,
+    description: p.description,
+    start_date: p.startDate,
+    end_date: p.endDate,
+    is_active: p.isActive,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+  }));
+  
+  const res = NextResponse.json({ data: mapped });
   // Cache 30 detik di browser, stale-while-revalidate 60 detik di background
   res.headers.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
   return res;
@@ -47,5 +60,17 @@ export const POST = apiHandler(async (req: NextRequest) => {
     },
   });
 
-  return NextResponse.json({ data: serializeBigInt(project) }, { status: 201 });
+  return NextResponse.json({ 
+    data: {
+      id: Number(project.id),
+      name: project.name,
+      location: project.location,
+      description: project.description,
+      start_date: project.startDate,
+      end_date: project.endDate,
+      is_active: project.isActive,
+      created_at: project.createdAt,
+      updated_at: project.updatedAt,
+    }
+  }, { status: 201 });
 });

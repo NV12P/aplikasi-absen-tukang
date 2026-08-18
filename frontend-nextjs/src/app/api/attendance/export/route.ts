@@ -36,6 +36,11 @@ export const GET = apiHandler(async (req: NextRequest) => {
 
   if (!project) return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
 
+  // Query foreman untuk signature
+  const foreman = await prisma.foreman.findUnique({
+    where: { projectId: BigInt(projectId) },
+  });
+
   const attMap = new Map<string, { status: string; wage: number }>();
   for (const att of attendances) {
     attMap.set(`${att.workerId}_${att.date.toISOString().split("T")[0]}`, {
@@ -229,6 +234,56 @@ export const GET = apiHandler(async (req: NextRequest) => {
     { width: 18 },  // Total Upah
   ];
 
+  // ─── Signature Block (pojok kanan bawah) ─────────────────────────────────
+  const signatureStartRow = sheet.lastRow!.number + 2;
+  const locationFmt = new Intl.DateTimeFormat("id-ID", { 
+    day: "numeric", 
+    month: "long", 
+    year: "numeric", 
+    timeZone: "UTC" 
+  });
+  
+  // Baris: "Malang, [tanggal akhir]"
+  sheet.mergeCells(signatureStartRow, 9, signatureStartRow, 11);
+  const cityDateCell = sheet.getCell(signatureStartRow, 9);
+  cityDateCell.value = `Malang, ${locationFmt.format(weekEnd)}`;
+  cityDateCell.font = { size: 10, color: { argb: "FF000000" } };
+  cityDateCell.alignment = { horizontal: "left", vertical: "middle" };
+  cityDateCell.border = {};
+
+  // Baris: "MENGETAHUI"
+  sheet.mergeCells(signatureStartRow + 1, 9, signatureStartRow + 1, 11);
+  const mengetahuiCell = sheet.getCell(signatureStartRow + 1, 9);
+  mengetahuiCell.value = "MENGETAHUI";
+  mengetahuiCell.font = { size: 10, bold: true, color: { argb: "FF000000" } };
+  mengetahuiCell.alignment = { horizontal: "left", vertical: "middle" };
+  mengetahuiCell.border = {};
+
+  // Baris: "KEPALA TUKANG"
+  sheet.mergeCells(signatureStartRow + 2, 9, signatureStartRow + 2, 11);
+  const jabatanCell = sheet.getCell(signatureStartRow + 2, 9);
+  jabatanCell.value = "KEPALA TUKANG";
+  jabatanCell.font = { size: 10, bold: true, color: { argb: "FF000000" } };
+  jabatanCell.alignment = { horizontal: "left", vertical: "middle" };
+  jabatanCell.border = {};
+
+  // 3 baris kosong untuk tanda tangan
+  for (let i = 0; i < 3; i++) {
+    const emptyRow = signatureStartRow + 3 + i;
+    sheet.mergeCells(emptyRow, 9, emptyRow, 11);
+    const emptyCell = sheet.getCell(emptyRow, 9);
+    emptyCell.value = "";
+    emptyCell.border = {};
+  }
+
+  // Baris: "(Nama Kepala Tukang)"
+  sheet.mergeCells(signatureStartRow + 6, 9, signatureStartRow + 6, 11);
+  const nameCell = sheet.getCell(signatureStartRow + 6, 9);
+  nameCell.value = foreman ? `(${foreman.name})` : "(Nama Kepala Tukang)";
+  nameCell.font = { size: 10, bold: true, color: { argb: "FF000000" } };
+  nameCell.alignment = { horizontal: "left", vertical: "middle" };
+  nameCell.border = {};
+
   // ─── Page setup ───────────────────────────────────────────────────────────
   sheet.pageSetup = {
     paperSize: 9,
@@ -238,7 +293,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
     margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 },
   };
 
-  const lastDataRow = 5 + workers.length + 1;
+  const lastDataRow = 5 + workers.length + 1 + 8; // +8 untuk signature block
   sheet.pageSetup.printArea = `A1:K${lastDataRow}`;
   sheet.headerFooter.oddFooter = `&L&8Dicetak: ${new Date().toLocaleDateString("id-ID")}&R&8Halaman &P dari &N`;
 

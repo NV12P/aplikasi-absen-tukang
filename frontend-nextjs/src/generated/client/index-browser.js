@@ -153,6 +153,15 @@ exports.Prisma.ProjectScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ForemanScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  phone: 'phone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.WorkerScalarFieldEnum = {
   id: 'id',
   projectId: 'projectId',
@@ -200,6 +209,7 @@ exports.Prisma.ModelName = {
   AdminUser: 'AdminUser',
   Position: 'Position',
   Project: 'Project',
+  Foreman: 'Foreman',
   Worker: 'Worker',
   Attendance: 'Attendance'
 };
