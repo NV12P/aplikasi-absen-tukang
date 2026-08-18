@@ -6,12 +6,31 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "Absen Tukang",
   description: "Aplikasi absensi pekerja konstruksi",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Absen Tukang",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#f97316",
 };
 
 /**

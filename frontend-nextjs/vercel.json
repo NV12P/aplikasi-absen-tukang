@@ -2,5 +2,29 @@
   "buildCommand": "node node_modules/prisma/build/index.js generate && node node_modules/next/dist/bin/next build",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["sin1"]
+  "regions": ["sin1"],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/workbox-:hash.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
 }
