@@ -2,6 +2,7 @@
 
 import { SessionProvider } from "next-auth/react";
 import { ToastProvider } from "@/components/ui/Toast";
+import { SplashScreen } from "@/components/ui/SplashScreen";
 
 /**
  * Global providers — SessionProvider (NextAuth) + ToastProvider.
@@ -10,7 +11,10 @@ import { ToastProvider } from "@/components/ui/Toast";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <ToastProvider>{children}</ToastProvider>
+      <ToastProvider>
+        <SplashScreen />
+        {children}
+      </ToastProvider>
     </SessionProvider>
   );
 }

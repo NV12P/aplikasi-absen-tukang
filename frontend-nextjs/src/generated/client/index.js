@@ -193,7 +193,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\athoi\\USER\\aplikasi-absen-tukang\\frontend-nextjs\\src\\generated\\client",
+      "value": "C:\\laragon\\www\\aplikasi-absen-tukang\\frontend-nextjs\\src\\generated\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -207,7 +207,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\athoi\\USER\\aplikasi-absen-tukang\\frontend-nextjs\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\laragon\\www\\aplikasi-absen-tukang\\frontend-nextjs\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -221,7 +221,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
