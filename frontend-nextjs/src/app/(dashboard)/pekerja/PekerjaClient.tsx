@@ -177,6 +177,7 @@ export function PekerjaClient({
           <table className="table" style={{ minWidth: "600px" }}>
             <thead>
               <tr>
+                <th style={{ width: "48px", textAlign: "center" }}>No</th>
                 <th>Nama Pekerja</th>
                 <th>Jabatan</th>
                 <th>Proyek</th>
@@ -187,15 +188,16 @@ export function PekerjaClient({
             <tbody>
               {displayWorkers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ textAlign: "center", padding: "24px" }}>
+                  <td colSpan={6} style={{ textAlign: "center", padding: "24px" }}>
                     {workers.length === 0
                       ? "Belum ada data pekerja. Silakan tambahkan pekerja baru."
                       : "Tidak ada pekerja di proyek ini."}
                   </td>
                 </tr>
               ) : (
-                displayWorkers.map((worker) => (
+                displayWorkers.map((worker, index) => (
                   <tr key={worker.id}>
+                    <td style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>{index + 1}</td>
                     <td>
                       <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--text-main)" }}>{worker.name}</div>
                       <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "4px" }}>

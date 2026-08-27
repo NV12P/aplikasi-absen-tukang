@@ -213,6 +213,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           <table className="table" style={{ minWidth: "640px" }}>
             <thead>
               <tr>
+                <th style={{ width: "48px", textAlign: "center" }}>No</th>
                 <th style={{ width: "30%" }}>Nama Pekerja</th>
                 <th style={{ width: "42%" }}>Kehadiran</th>
                 <th style={{ width: "28%" }}>Keterangan (Opsional)</th>
@@ -221,27 +222,28 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
             <tbody>
               {loading && !selectedProject ? (
                 <tr>
-                  <td colSpan={3} style={{ textAlign: "center", padding: "32px" }}>Loading...</td>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "32px" }}>Loading...</td>
                 </tr>
               ) : !selectedProject ? (
                 <tr>
-                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     Silakan pilih proyek terlebih dahulu.
                   </td>
                 </tr>
               ) : workers.length === 0 ? (
                 <tr>
-                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                  <td colSpan={4} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     Tidak ada pekerja yang ditugaskan di proyek ini.
                   </td>
                 </tr>
               ) : (
-                workers.map((worker) => {
+                workers.map((worker, index) => {
                   const isAlreadyAttended = !!worker.already_attended;
                   const currentStatus = attendance[worker.worker_id]?.status || "hadir";
 
                   return (
                     <tr key={worker.worker_id}>
+                      <td style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>{index + 1}</td>
                       <td>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
