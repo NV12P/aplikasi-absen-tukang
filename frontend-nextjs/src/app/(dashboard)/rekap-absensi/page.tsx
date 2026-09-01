@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { serializeBigInt } from "@/lib/bigint";
 import { RekapAbsensiClient } from "./RekapAbsensiClient";
@@ -10,5 +11,9 @@ export default async function RekapAbsensiPage() {
 
   const projects = serializeBigInt(rawProjects);
 
-  return <RekapAbsensiClient projects={projects} />;
+  return (
+    <Suspense fallback={null}>
+      <RekapAbsensiClient projects={projects} />
+    </Suspense>
+  );
 }

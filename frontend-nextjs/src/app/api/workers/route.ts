@@ -40,6 +40,23 @@ export const POST = apiHandler(async (req: NextRequest) => {
   const parsed = workerSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 422 });
 
+  // Validasi: cek apakah proyek masih aktif
+  const project = await prisma.project.findUnique({
+    where: { id: BigInt(parsed.data.project_id) },
+    select: { isActive: true, name: true },
+  });
+
+  if (!project) {
+    return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
+  }
+
+  if (!project.isActive) {
+    return NextResponse.json(
+      { error: `Tidak dapat menambahkan pekerja ke proyek "${project.name}" karena proyek sudah selesai` },
+      { status: 400 }
+    );
+  }
+
   const worker = await prisma.worker.create({
     data: {
       name: parsed.data.name,

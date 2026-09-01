@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { serializeBigInt } from "@/lib/bigint";
 import { ProyekClient } from "./ProyekClient";
@@ -7,7 +8,6 @@ export default async function ProyekPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // serializeBigInt + serialize Date ke string
   const projects = serializeBigInt(rawProjects).map((p) => ({
     id: p.id,
     name: p.name,
@@ -24,5 +24,9 @@ export default async function ProyekPage() {
     updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : String(p.updatedAt ?? ""),
   }));
 
-  return <ProyekClient initialProjects={projects} />;
+  return (
+    <Suspense fallback={null}>
+      <ProyekClient initialProjects={projects} />
+    </Suspense>
+  );
 }

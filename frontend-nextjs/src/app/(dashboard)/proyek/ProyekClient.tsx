@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
@@ -42,9 +42,35 @@ const emptyAddForm: AddForm = {
 
 export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[] }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
   const [projects, setProjects] = useState(initialProjects);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("q") ?? "");
+  const [filterStatus, setFilterStatus] = useState<string>(searchParams.get("status") ?? "all");
+
+  // Update URL params tanpa reload
+  const updateParams = useCallback((updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, val]) => {
+      if (val && val !== "all") {
+        params.set(key, val);
+      } else {
+        params.delete(key);
+      }
+    });
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  function handleSearchChange(val: string) {
+    setSearchTerm(val);
+    updateParams({ q: val });
+  }
+
+  function handleStatusChange(val: string) {
+    setFilterStatus(val);
+    updateParams({ status: val });
+  }
 
   // ─── Modal Tambah State ──────────────────────────────────────────────────
   const [showAddModal, setShowAddModal] = useState(false);
@@ -76,7 +102,13 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
 
   // ─── Handlers ─────────────────────────────────────────────────────────────
   function openAddModal() {
-    setAddForm(emptyAddForm);
+    // Force fresh form dengan spread baru, pastikan is_active = true
+    setAddForm({
+      name: "",
+      location: "",
+      description: "",
+      is_active: true,
+    });
     setShowAddModal(true);
   }
 
@@ -103,11 +135,15 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
 
       const { data } = await res.json();
       const normalized = {
-        ...data,
-        startDate: data.startDate ? String(data.startDate).split("T")[0] : null,
-        endDate: data.endDate ? String(data.endDate).split("T")[0] : null,
-        createdAt: data.createdAt ? String(data.createdAt) : "",
-        updatedAt: data.updatedAt ? String(data.updatedAt) : "",
+        id: data.id,
+        name: data.name,
+        location: data.location,
+        description: data.description,
+        startDate: data.start_date ? String(data.start_date).split("T")[0] : null,
+        endDate: data.end_date ? String(data.end_date).split("T")[0] : null,
+        isActive: data.is_active,
+        createdAt: data.created_at ? String(data.created_at) : "",
+        updatedAt: data.updated_at ? String(data.updated_at) : "",
       };
       setProjects((prev) => [normalized, ...prev]);
       setShowAddModal(false);
@@ -164,13 +200,17 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
 
       const { data } = await res.json();
 
-      // Normalize tanggal dari ISO ke format YYYY-MM-DD untuk konsistensi state
+      // Normalize snake_case dari API ke camelCase untuk state
       const normalized = {
-        ...data,
-        startDate: data.startDate ? String(data.startDate).split("T")[0] : null,
-        endDate: data.endDate ? String(data.endDate).split("T")[0] : null,
-        createdAt: data.createdAt ? String(data.createdAt) : "",
-        updatedAt: data.updatedAt ? String(data.updatedAt) : "",
+        id: data.id,
+        name: data.name,
+        location: data.location,
+        description: data.description,
+        startDate: data.start_date ? String(data.start_date).split("T")[0] : null,
+        endDate: data.end_date ? String(data.end_date).split("T")[0] : null,
+        isActive: data.is_active,
+        createdAt: data.created_at ? String(data.created_at) : "",
+        updatedAt: data.updated_at ? String(data.updated_at) : "",
       };
 
       setProjects((prev) => prev.map((p) => (p.id === editId ? normalized : p)));
@@ -213,6 +253,15 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
     return <span className="badge" style={{ backgroundColor: "#dcfce7", color: "#166534" }}>Aktif</span>;
   };
 
+  const displayProjects = projects
+    .filter((p) => filterStatus === "all" || (filterStatus === "active" ? p.isActive : !p.isActive))
+    .filter((p) =>
+      searchTerm === "" ||
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
   return (
     <div className="page-container">
       {/* Toolbar */}
@@ -230,11 +279,75 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
           </div>
         </div>
         <div className="page-toolbar-right">
+          {/* Filter Status */}
+          <CustomSelect
+            value={filterStatus}
+            onChange={handleStatusChange}
+            style={{ minWidth: "150px" }}
+            options={[
+              { value: "all", label: "Semua Status" },
+              { value: "active", label: "Aktif" },
+              { value: "inactive", label: "Selesai" },
+            ]}
+          />
+
+          {/* Search */}
+          <div style={{ position: "relative" }}>
+            <svg
+              width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Cari nama / lokasi..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              style={{
+                paddingLeft: "32px",
+                paddingRight: searchTerm ? "32px" : "12px",
+                paddingTop: "9px",
+                paddingBottom: "9px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "8px",
+                fontSize: "14px",
+                width: "200px",
+                backgroundColor: "var(--card-bg)",
+                color: "var(--text-primary)",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--accent-color)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => handleSearchChange("")}
+                style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "2px", display: "flex", alignItems: "center" }}
+              >
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
           <button className="btn-primary" style={{ padding: "10px 20px", borderRadius: "8px" }} onClick={openAddModal}>
             + Tambah Proyek Baru
           </button>
         </div>
       </div>
+
+      {/* Filter stats */}
+      {(searchTerm || filterStatus !== "all") && (
+        <div style={{ marginBottom: "8px", fontSize: "13px", color: "var(--text-muted)", paddingLeft: "2px" }}>
+          Menampilkan <strong>{displayProjects.length}</strong> dari <strong>{projects.length}</strong> proyek
+          {displayProjects.length === 0 && (
+            <span style={{ color: "var(--danger)", marginLeft: "4px" }}>— tidak ditemukan</span>
+          )}
+        </div>
+      )}
 
       {/* Tabel Proyek */}
       <div className="card" style={{ padding: "0" }}>
@@ -252,14 +365,18 @@ export function ProyekClient({ initialProjects }: { initialProjects: ProjectRow[
               </tr>
             </thead>
             <tbody>
-              {projects.length === 0 ? (
+              {displayProjects.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: "center", padding: "24px" }}>
-                    Belum ada data proyek. Silakan tambahkan proyek baru.
+                    {projects.length === 0
+                      ? "Belum ada data proyek. Silakan tambahkan proyek baru."
+                      : searchTerm
+                      ? `Tidak ada proyek dengan nama "${searchTerm}".`
+                      : "Tidak ada proyek yang sesuai filter."}
                   </td>
                 </tr>
               ) : (
-                projects.map((project) => (
+                displayProjects.map((project) => (
                   <tr key={project.id}>
                     <td>
                       <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--text-main)" }}>{project.name}</div>

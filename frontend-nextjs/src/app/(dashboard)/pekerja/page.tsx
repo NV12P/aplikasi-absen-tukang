@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { serializeBigInt } from "@/lib/bigint";
 import { PekerjaClient } from "./PekerjaClient";
@@ -13,20 +14,21 @@ export default async function PekerjaPage() {
       },
       orderBy: { name: "asc" },
     }),
-    prisma.project.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    prisma.project.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, isActive: true } }),
     prisma.position.findMany({ orderBy: { name: "asc" } }),
   ]);
 
-  // serializeBigInt konversi semua BigInt id -> number
   const workers = serializeBigInt(rawWorkers);
   const projects = serializeBigInt(rawProjects);
   const positions = serializeBigInt(rawPositions);
 
   return (
-    <PekerjaClient
-      initialWorkers={workers}
-      projects={projects}
-      positions={positions}
-    />
+    <Suspense fallback={null}>
+      <PekerjaClient
+        initialWorkers={workers}
+        projects={projects}
+        positions={positions}
+      />
+    </Suspense>
   );
 }

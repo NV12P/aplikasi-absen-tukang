@@ -42,6 +42,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [todayDate, setTodayDate] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
     setTodayDate(formatDate(new Date()));
@@ -52,6 +53,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       if (!selectedProject) {
         setWorkers([]);
         setAttendance({});
+        setSearchTerm("");
         return;
       }
 
@@ -151,6 +153,12 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
     (w) => !w.already_attended && attendance[w.worker_id]?.status !== w.current_status
   );
 
+  // Filter workers berdasarkan search term
+  const filteredWorkers = workers.filter((w) =>
+    w.worker_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    w.position.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="page-container">
       {/* Toolbar */}
@@ -196,6 +204,74 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           />
         </div>
         <div className="page-toolbar-right">
+          {/* Search input - hanya tampil kalau sudah pilih proyek dan ada pekerja */}
+          {selectedProject && workers.length > 0 && (
+            <div style={{ position: "relative" }}>
+              <svg
+                width="15"
+                height="15"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                style={{
+                  position: "absolute",
+                  left: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--text-muted)",
+                  pointerEvents: "none",
+                }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Cari pekerja..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  paddingLeft: "32px",
+                  paddingRight: searchTerm ? "32px" : "12px",
+                  paddingTop: "9px",
+                  paddingBottom: "9px",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  width: "200px",
+                  backgroundColor: "var(--card-bg)",
+                  color: "var(--text-primary)",
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--accent-color)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
+              />
+              {/* Clear button */}
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  style={{
+                    position: "absolute",
+                    right: "8px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--text-muted)",
+                    padding: "2px",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
+
           <button
             className="btn-primary"
             style={{ padding: "10px 24px", borderRadius: "8px" }}
@@ -206,6 +282,23 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           </button>
         </div>
       </div>
+
+      {/* Filter stats - tampil saat ada search */}
+      {searchTerm && workers.length > 0 && (
+        <div style={{ 
+          marginBottom: "8px", 
+          fontSize: "13px", 
+          color: "var(--text-muted)",
+          paddingLeft: "2px",
+        }}>
+          Menampilkan <strong>{filteredWorkers.length}</strong> dari <strong>{workers.length}</strong> pekerja
+          {filteredWorkers.length === 0 && (
+            <span style={{ color: "var(--danger)", marginLeft: "4px" }}>
+              — tidak ditemukan
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Table Card */}
       <div className="card" style={{ padding: "0" }}>
@@ -235,8 +328,14 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                     Tidak ada pekerja yang ditugaskan di proyek ini.
                   </td>
                 </tr>
+              ) : filteredWorkers.length === 0 ? (
+                <tr>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                    Tidak ada pekerja dengan nama &quot;{searchTerm}&quot;.
+                  </td>
+                </tr>
               ) : (
-                workers.map((worker) => {
+                filteredWorkers.map((worker) => {
                   const isAlreadyAttended = !!worker.already_attended;
                   const currentStatus = attendance[worker.worker_id]?.status || "hadir";
 

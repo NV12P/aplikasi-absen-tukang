@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import { CustomSelect } from "@/components/ui/CustomSelect";
 
@@ -90,13 +91,43 @@ const DayCell = ({ status }: { status?: string }) => {
 
 export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) {
   const toast = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const today = getTodayStr();
-  const [selectedProject, setSelectedProject] = useState<string>("");
-  const [selectedWeek, setSelectedWeek] = useState<string>(today);
+  const [selectedProject, setSelectedProject] = useState<string>(searchParams.get("project") ?? "");
+  const [selectedWeek, setSelectedWeek] = useState<string>(searchParams.get("week") ?? today);
   const [workerRows, setWorkerRows] = useState<WorkerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+
+  // Update URL params tanpa reload
+  const updateParams = useCallback((updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, val]) => {
+      if (val) {
+        params.set(key, val);
+      } else {
+        params.delete(key);
+      }
+    });
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  function handleProjectChange(val: string) {
+    setSelectedProject(val);
+    updateParams({ project: val });
+  }
+
+  function handleWeekChange(val: string) {
+    setSelectedWeek(val);
+    updateParams({ week: val });
+  }
+
+  function handleSearchChange(val: string) {
+    setSearch(val);
+    updateParams({ q: val });
+  }
 
   const weekDates = getWeekDates(selectedWeek);
   const dateFrom = toDateStr(weekDates[0]);
@@ -177,7 +208,7 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         <div className="page-toolbar-left">
           <CustomSelect
             value={selectedProject}
-            onChange={(val) => setSelectedProject(val)}
+            onChange={handleProjectChange}
             placeholder="Pilih Proyek..."
             style={{ minWidth: "200px" }}
             options={[
@@ -191,7 +222,7 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
             className="select-field"
             style={{ minWidth: "150px" }}
             value={selectedWeek}
-            onChange={(e) => setSelectedWeek(e.target.value)}
+            onChange={(e) => handleWeekChange(e.target.value)}
           />
         </div>
 
@@ -212,19 +243,46 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         </div>
 
         <div className="page-toolbar-right">
-          <div className="input-group">
-            <svg className="input-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          {/* Search */}
+          <div style={{ position: "relative" }}>
+            <svg
+              width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
-              className="input-field"
               placeholder="Cari pekerja..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ paddingLeft: "40px" }}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              style={{
+                paddingLeft: "32px",
+                paddingRight: search ? "32px" : "12px",
+                paddingTop: "9px",
+                paddingBottom: "9px",
+                border: "1px solid var(--border-color)",
+                borderRadius: "8px",
+                fontSize: "14px",
+                width: "200px",
+                backgroundColor: "var(--card-bg)",
+                color: "var(--text-primary)",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--accent-color)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--border-color)")}
             />
+            {search && (
+              <button
+                onClick={() => handleSearchChange("")}
+                style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "2px", display: "flex", alignItems: "center" }}
+              >
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
 
           <button
@@ -244,6 +302,16 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           </button>
         </div>
       </div>
+
+      {/* Filter stats - tampil saat ada search */}
+      {search && workerRows.length > 0 && (
+        <div style={{ marginBottom: "8px", fontSize: "13px", color: "var(--text-muted)", paddingLeft: "2px" }}>
+          Menampilkan <strong>{filteredRows.length}</strong> dari <strong>{workerRows.length}</strong> pekerja
+          {filteredRows.length === 0 && (
+            <span style={{ color: "var(--danger)", marginLeft: "4px" }}>— tidak ditemukan</span>
+          )}
+        </div>
+      )}
 
       {/* Card Ringkasan Compact */}
       <div className="rekap-summary-grid">
