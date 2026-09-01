@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { AttendanceStatus } from "@/generated/client";
 import { useToast } from "@/components/ui/Toast";
 import { CustomSelect } from "@/components/ui/CustomSelect";
@@ -36,13 +36,37 @@ function formatDate(date: Date): string {
 export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) {
   const toast = useToast();
   const router = useRouter();
-  const [selectedProject, setSelectedProject] = useState<string>("");
+  const searchParams = useSearchParams();
+  const [selectedProject, setSelectedProject] = useState<string>(searchParams.get("project") ?? "");
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [attendance, setAttendance] = useState<Record<number, WorkerAttendanceState>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [todayDate, setTodayDate] = useState<string>("");
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("q") ?? "");
+
+  // Update URL params tanpa reload
+  const updateParams = useCallback((updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, val]) => {
+      if (val) {
+        params.set(key, val);
+      } else {
+        params.delete(key);
+      }
+    });
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  function handleProjectChange(val: string) {
+    setSelectedProject(val);
+    updateParams({ project: val });
+  }
+
+  function handleSearchChange(val: string) {
+    setSearchTerm(val);
+    updateParams({ q: val });
+  }
 
   useEffect(() => {
     setTodayDate(formatDate(new Date()));
@@ -54,6 +78,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         setWorkers([]);
         setAttendance({});
         setSearchTerm("");
+        updateParams({ q: "" }); // clear search dari URL juga
         return;
       }
 
@@ -194,7 +219,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
 
           <CustomSelect
             value={selectedProject}
-            onChange={(val) => setSelectedProject(val)}
+            onChange={handleProjectChange}
             placeholder="Pilih Proyek..."
             style={{ minWidth: "220px" }}
             options={[
@@ -228,7 +253,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 type="text"
                 placeholder="Cari pekerja..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 style={{
                   paddingLeft: "32px",
                   paddingRight: searchTerm ? "32px" : "12px",
@@ -249,7 +274,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
               {/* Clear button */}
               {searchTerm && (
                 <button
-                  onClick={() => setSearchTerm("")}
+                  onClick={() => handleSearchChange("")}
                   style={{
                     position: "absolute",
                     right: "8px",

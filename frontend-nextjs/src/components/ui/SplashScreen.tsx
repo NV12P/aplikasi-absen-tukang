@@ -65,6 +65,7 @@ export function SplashScreen() {
           src="/icon-192x192.png"
           alt="Absen Tukang"
           fill
+          sizes="100px"
           style={{ objectFit: "cover" }}
           priority
         />

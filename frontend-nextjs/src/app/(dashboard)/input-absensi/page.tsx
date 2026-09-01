@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import { serializeBigInt } from "@/lib/bigint";
 import { InputAbsensiClient } from "./InputAbsensiClient";
@@ -9,8 +10,11 @@ export default async function InputAbsensiPage() {
     select: { id: true, name: true },
   });
 
-  // serializeBigInt konversi BigInt id -> number
   const projects = serializeBigInt(rawProjects);
 
-  return <InputAbsensiClient projects={projects} />;
+  return (
+    <Suspense fallback={null}>
+      <InputAbsensiClient projects={projects} />
+    </Suspense>
+  );
 }

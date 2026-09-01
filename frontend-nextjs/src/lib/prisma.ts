@@ -25,13 +25,13 @@ function buildDatasourceUrl(): string | undefined {
 
   try {
     const parsed = new URL(url);
-    // Tambah parameter jika belum ada
+    // Tambah parameter jika belum ada - increase limits for better handling
     if (!parsed.searchParams.has("connection_limit"))
-      parsed.searchParams.set("connection_limit", "5");
+      parsed.searchParams.set("connection_limit", "10");
     if (!parsed.searchParams.has("connect_timeout"))
-      parsed.searchParams.set("connect_timeout", "10");
+      parsed.searchParams.set("connect_timeout", "15");
     if (!parsed.searchParams.has("pool_timeout"))
-      parsed.searchParams.set("pool_timeout", "10");
+      parsed.searchParams.set("pool_timeout", "20");
     return parsed.toString();
   } catch {
     return url;
@@ -46,6 +46,13 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// Graceful shutdown - disconnect on process termination
+if (typeof window === "undefined") {
+  process.on("beforeExit", async () => {
+    await prisma.$disconnect();
+  });
+}
 
 /**
  * Jalankan query Prisma dengan retry otomatis.
