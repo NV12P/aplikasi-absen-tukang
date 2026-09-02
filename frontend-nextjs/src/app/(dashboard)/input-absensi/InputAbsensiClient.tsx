@@ -40,8 +40,16 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   const [attendance, setAttendance] = useState<Record<number, WorkerAttendanceState>>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [todayDate, setTodayDate] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("q") ?? "");
+  
+  // State untuk tanggal yang dipilih
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [todayDateFormatted, setTodayDateFormatted] = useState<string>("");
+  
+  // State untuk edit modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingWorker, setEditingWorker] = useState<WorkerRow | null>(null);
+  const [tempEditStatus, setTempEditStatus] = useState<AttendanceStatus | undefined>(undefined);
 
   // Update URL params tanpa reload
   const updateParams = useCallback((updates: Record<string, string>) => {
@@ -67,8 +75,38 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   }
 
   useEffect(() => {
-    setTodayDate(formatDate(new Date()));
-  }, []);
+    setTodayDateFormatted(formatDate(selectedDate));
+  }, [selectedDate]);
+
+  // Helper functions untuk navigasi tanggal
+  function goToPreviousDay() {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  }
+
+  function goToToday() {
+    setSelectedDate(new Date());
+  }
+
+  function goToNextDay() {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  }
+
+  function isToday() {
+    const today = new Date();
+    return selectedDate.toDateString() === today.toDateString();
+  }
+
+  function isFutureDate() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(selectedDate);
+    selected.setHours(0, 0, 0, 0);
+    return selected > today;
+  }
 
   useEffect(() => {
     async function loadWorkers() {
@@ -82,8 +120,8 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
 
       setLoading(true);
       try {
-        const today = new Date().toISOString().split("T")[0];
-        const res = await fetch(`/api/attendance/project/${selectedProject}?date=${today}`);
+        const dateStr = selectedDate.toISOString().split("T")[0];
+        const res = await fetch(`/api/attendance/project/${selectedProject}?date=${dateStr}`);
 
         if (!res.ok) {
           throw new Error("Gagal memuat data pekerja");
@@ -117,6 +155,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         });
         
         console.log("📥 Loaded attendance state:", {
+          date: dateStr,
           fromDB: data.filter((w: WorkerRow) => w.current_status).length,
           fromURL: Object.keys(statusFromUrl).length,
           total: Object.keys(initialState).length
@@ -132,7 +171,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
     }
 
     loadWorkers();
-  }, [selectedProject]);
+  }, [selectedProject, selectedDate]);
 
   function handleStatusChange(workerId: number, status: AttendanceStatus) {
     setAttendance((prev) => {
@@ -148,6 +187,79 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         [workerId]: { status: newStatus },
       };
     });
+  }
+
+  // Fungsi untuk buka modal edit
+  function handleOpenEditModal(worker: WorkerRow) {
+    setEditingWorker(worker);
+    setTempEditStatus(worker.current_status || undefined); // Set status awal dari DB
+    setEditModalOpen(true);
+  }
+
+  // Fungsi untuk save dari modal edit
+  async function handleSaveEdit() {
+    if (!editingWorker || !selectedProject || !tempEditStatus) {
+      toast.error("Pilih status terlebih dahulu!");
+      return;
+    }
+
+    if (isFutureDate()) {
+      toast.error("Tidak bisa mengupdate absensi untuk tanggal yang belum terjadi!");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      
+      const payload = {
+        project_id: Number(selectedProject),
+        date: dateStr,
+        attendances: [{
+          worker_id: editingWorker.worker_id,
+          status: tempEditStatus,
+        }],
+      };
+
+      console.log("✏️ Updating:", { worker: editingWorker.worker_name, status: tempEditStatus, date: dateStr });
+
+      const res = await fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error("Gagal mengupdate absensi");
+      }
+
+      toast.success(`Absensi ${editingWorker.worker_name} berhasil diupdate!`);
+
+      // Reload data
+      const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${dateStr}`);
+      if (updatedRes.ok) {
+        const { data } = await updatedRes.json();
+        setWorkers(data);
+        
+        const updatedState: Record<number, WorkerAttendanceState> = {};
+        (data as WorkerRow[]).forEach((w) => {
+          updatedState[w.worker_id] = {
+            status: w.current_status || undefined,
+          };
+        });
+        setAttendance(updatedState);
+      }
+      
+      // Close modal dan reset state
+      setEditModalOpen(false);
+      setEditingWorker(null);
+      setTempEditStatus(undefined);
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || "Gagal mengupdate absensi");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // Effect untuk sync attendance ke URL (persist pilihan sementara)
@@ -183,11 +295,16 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       return;
     }
 
+    if (isFutureDate()) {
+      toast.error("Tidak bisa menyimpan absensi untuk tanggal yang belum terjadi!");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const today = new Date().toISOString().split("T")[0];
+      const dateStr = selectedDate.toISOString().split("T")[0];
       
-      // Filter: hanya worker yang sudah pilih status yang akan di-submit
+      // Filter: hanya worker baru yang belum diabsen
       const workersToSubmit = workers
         .filter((w) => !w.already_attended) // belum diabsen hari ini
         .filter((w) => attendance[w.worker_id]?.status !== undefined) // sudah pilih status
@@ -204,7 +321,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
 
       const payload = {
         project_id: Number(selectedProject),
-        date: today,
+        date: dateStr,
         attendances: workersToSubmit,
       };
 
@@ -221,7 +338,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       toast.success("Data absensi berhasil disimpan!");
 
       // Reload data worker dengan status terbaru dari database
-      const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${today}`);
+      const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${dateStr}`);
       if (updatedRes.ok) {
         const { data } = await updatedRes.json();
         setWorkers(data);
@@ -248,7 +365,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   }
 
   const hasUnsavedChanges = workers.some(
-    (w) => !w.already_attended && attendance[w.worker_id]?.status !== undefined && attendance[w.worker_id]?.status !== w.current_status
+    (w) => !w.already_attended && attendance[w.worker_id]?.status !== undefined
   );
 
   // Filter workers berdasarkan search term
@@ -260,41 +377,166 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   return (
     <div className="page-container">
       {/* Toolbar */}
-      <div className="page-toolbar">
-        <div className="page-toolbar-left">
-          {/* Card Hari & Tanggal */}
+      <div className="page-toolbar" style={{ flexWrap: "wrap", gap: "12px" }}>
+        <div className="page-toolbar-left" style={{ flexWrap: "wrap", gap: "12px", flex: 1, minWidth: "min(100%, 300px)" }}>
+          {/* Date Picker dengan Navigasi - Responsive */}
           <div
             style={{
-              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "8px",
               backgroundColor: "#f8fafc",
               borderRadius: "8px",
               border: "1px solid #e2e8f0",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              marginRight: "12px",
+              flex: "1 1 auto",
+              minWidth: "min(100%, 280px)",
+              maxWidth: "100%",
             }}
           >
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              style={{ flexShrink: 0, color: "#64748b" }}
+            {/* Tombol Kemarin */}
+            <button
+              onClick={goToPreviousDay}
+              style={{
+                padding: "10px",
+                border: "none",
+                background: "#fff",
+                borderRadius: "6px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s",
+                minWidth: "40px",
+                minHeight: "40px",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#e2e8f0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#fff";
+              }}
+              title="Hari sebelumnya"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, whiteSpace: "nowrap" }}>
-              {todayDate}
-            </span>
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            {/* Tampilan Tanggal - Responsive */}
+            <div style={{ 
+              display: "flex", 
+              flexDirection: "column",
+              alignItems: "center", 
+              gap: "4px", 
+              padding: "4px 12px",
+              flex: 1,
+              minWidth: 0,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <svg
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  style={{ flexShrink: 0, color: "#64748b" }}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span style={{ 
+                  fontSize: "clamp(12px, 3vw, 14px)", 
+                  color: "#1e293b", 
+                  fontWeight: 600,
+                  textAlign: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}>
+                  {todayDateFormatted}
+                </span>
+              </div>
+              {(isToday() || isFutureDate()) && (
+                <span style={{ 
+                  fontSize: "10px", 
+                  padding: "3px 8px", 
+                  background: isToday() ? "#3b82f6" : "#f59e0b", 
+                  color: "#fff", 
+                  borderRadius: "4px",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                }}>
+                  {isToday() ? "HARI INI" : "MENDATANG"}
+                </span>
+              )}
+            </div>
+
+            {/* Tombol Besok */}
+            <button
+              onClick={goToNextDay}
+              style={{
+                padding: "10px",
+                border: "none",
+                background: "#fff",
+                borderRadius: "6px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.2s",
+                minWidth: "40px",
+                minHeight: "40px",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "#e2e8f0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "#fff";
+              }}
+              title="Hari selanjutnya"
+            >
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Tombol Hari Ini - Tampil jika bukan hari ini */}
+            {!isToday() && (
+              <button
+                onClick={goToToday}
+                style={{
+                  padding: "10px 16px",
+                  border: "none",
+                  background: "#3b82f6",
+                  color: "#fff",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  minHeight: "40px",
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#2563eb";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#3b82f6";
+                }}
+              >
+                Hari Ini
+              </button>
+            )}
           </div>
 
           <CustomSelect
             value={selectedProject}
             onChange={handleProjectChange}
             placeholder="Pilih Proyek..."
-            style={{ minWidth: "220px" }}
+            style={{ minWidth: "min(100%, 220px)", flex: "1 1 auto" }}
             options={[
               { value: "", label: "Pilih Proyek..." },
               ...projects.map((p) => ({ value: p.id, label: p.name })),
@@ -475,36 +717,77 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                         </div>
                       </td>
                       <td>
-                        <div className="radio-group">
-                          {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
-                            <label
-                              key={status}
-                              className={`radio-label ${
-                                currentStatus === status
-                                  ? status === "alpha"
-                                    ? "selected danger"
-                                    : "selected"
-                                  : ""
-                              }`}
-                              style={{ opacity: isAlreadyAttended ? 0.5 : 1, cursor: isAlreadyAttended ? 'not-allowed' : 'pointer' }}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (!isAlreadyAttended) {
-                                  handleStatusChange(worker.worker_id, status);
-                                }
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div className="radio-group" style={{ flex: 1 }}>
+                            {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
+                              <label
+                                key={status}
+                                className={`radio-label ${
+                                  currentStatus === status
+                                    ? status === "alpha"
+                                      ? "selected danger"
+                                      : "selected"
+                                    : ""
+                                }`}
+                                style={{ 
+                                  opacity: isAlreadyAttended ? 0.5 : 1, 
+                                  cursor: isAlreadyAttended ? 'not-allowed' : 'pointer' 
+                                }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (!isAlreadyAttended) {
+                                    handleStatusChange(worker.worker_id, status);
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="radio"
+                                  disabled={isAlreadyAttended}
+                                  name={`status-${worker.worker_id}`}
+                                  checked={currentStatus === status}
+                                  onChange={() => {}} // Dummy onChange untuk controlled component
+                                  style={{ pointerEvents: 'none' }}
+                                />
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </label>
+                            ))}
+                          </div>
+                          {isAlreadyAttended && (
+                            <button
+                              onClick={() => handleOpenEditModal(worker)}
+                              style={{
+                                background: "#fff",
+                                border: "1px solid #e5e7eb",
+                                borderRadius: "6px",
+                                padding: "8px 12px",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                color: "#6b7280",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                                transition: "all 0.2s",
+                                whiteSpace: "nowrap",
+                                flexShrink: 0,
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f9fafb";
+                                e.currentTarget.style.borderColor = "#3b82f6";
+                                e.currentTarget.style.color = "#3b82f6";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "#fff";
+                                e.currentTarget.style.borderColor = "#e5e7eb";
+                                e.currentTarget.style.color = "#6b7280";
                               }}
                             >
-                              <input
-                                type="radio"
-                                disabled={isAlreadyAttended}
-                                name={`status-${worker.worker_id}`}
-                                checked={currentStatus === status}
-                                onChange={() => {}} // Dummy onChange untuk controlled component
-                                style={{ pointerEvents: 'none' }}
-                              />
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </label>
-                          ))}
+                              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              Edit
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -515,6 +798,111 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
           </table>
         </div>
       </div>
+
+      {/* Modal Edit Absensi */}
+      {editModalOpen && editingWorker && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+          onClick={() => {
+            setEditModalOpen(false);
+            setEditingWorker(null);
+            setTempEditStatus(undefined);
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: "90%",
+              maxWidth: "500px",
+              padding: "24px",
+              margin: "16px",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ marginBottom: "20px" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>
+                Edit Absensi
+              </h3>
+              <p style={{ margin: "8px 0 0", fontSize: "14px", color: "var(--text-muted)" }}>
+                {editingWorker.worker_name} - {editingWorker.position}
+              </p>
+              <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--text-muted)" }}>
+                Status saat ini: <strong>{editingWorker.current_status?.toUpperCase()}</strong>
+              </p>
+            </div>
+
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>
+                Pilih Status Baru
+              </label>
+              <div className="radio-group" style={{ flexDirection: "column", gap: "8px" }}>
+                {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
+                  <label
+                    key={status}
+                    className={`radio-label ${
+                      tempEditStatus === status
+                        ? status === "alpha"
+                          ? "selected danger"
+                          : "selected"
+                        : ""
+                    }`}
+                    style={{ 
+                      cursor: "pointer", 
+                      width: "100%",
+                      justifyContent: "flex-start",
+                      padding: "12px 16px"
+                    }}
+                    onClick={() => setTempEditStatus(status)}
+                  >
+                    <input
+                      type="radio"
+                      name="edit-status"
+                      checked={tempEditStatus === status}
+                      onChange={() => {}}
+                      style={{ pointerEvents: "none" }}
+                    />
+                    <span style={{ flex: 1 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setEditModalOpen(false);
+                  setEditingWorker(null);
+                  setTempEditStatus(undefined);
+                }}
+                style={{ padding: "10px 20px" }}
+                disabled={submitting}
+              >
+                Batal
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleSaveEdit}
+                style={{ padding: "10px 20px" }}
+                disabled={submitting || !tempEditStatus}
+              >
+                {submitting ? "Menyimpan..." : "Simpan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
