@@ -17,12 +17,10 @@ interface WorkerRow {
   position: string;
   already_attended?: boolean;
   current_status: AttendanceStatus | null;
-  current_note?: string;
 }
 
 interface WorkerAttendanceState {
-  status: AttendanceStatus | "";
-  note: string;
+  status: AttendanceStatus | undefined; // undefined = belum dipilih
 }
 
 // Helper: format tanggal ke format Indonesia
@@ -95,12 +93,35 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         setWorkers(data);
 
         const initialState: Record<number, WorkerAttendanceState> = {};
+        
+        // Parse status dari URL (jika ada pilihan sebelumnya)
+        const statusParam = searchParams.get("status");
+        console.log("🔍 Status from URL:", statusParam);
+        let statusFromUrl: Record<number, AttendanceStatus> = {};
+        if (statusParam) {
+          try {
+            const decoded = decodeURIComponent(statusParam);
+            console.log("  Decoded:", decoded);
+            statusFromUrl = JSON.parse(decoded);
+            console.log("  Parsed:", statusFromUrl);
+          } catch (e) {
+            console.error("  Parse error:", e);
+          }
+        }
+
         (data as WorkerRow[]).forEach((w) => {
           initialState[w.worker_id] = {
-            status: w.current_status || "hadir",
-            note: w.current_note || "",
+            // Prioritas: 1. Sudah save (dari DB), 2. Pilihan sementara (dari URL), 3. undefined
+            status: w.current_status || statusFromUrl[w.worker_id] || undefined,
           };
         });
+        
+        console.log("📥 Loaded attendance state:", {
+          fromDB: data.filter((w: WorkerRow) => w.current_status).length,
+          fromURL: Object.keys(statusFromUrl).length,
+          total: Object.keys(initialState).length
+        });
+        
         setAttendance(initialState);
       } catch (err: any) {
         toast.error(err.message || "Gagal memuat data pekerja");
@@ -114,18 +135,47 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   }, [selectedProject]);
 
   function handleStatusChange(workerId: number, status: AttendanceStatus) {
-    setAttendance((prev) => ({
-      ...prev,
-      [workerId]: { ...(prev[workerId] || { note: "" }), status },
-    }));
+    setAttendance((prev) => {
+      const currentWorkerStatus = prev[workerId]?.status;
+      
+      // Toggle: jika klik tombol yang sama, unselect (jadi undefined)
+      const newStatus = currentWorkerStatus === status ? undefined : status;
+      
+      console.log("👆 Toggle:", { workerId, from: currentWorkerStatus, to: newStatus });
+      
+      return {
+        ...prev,
+        [workerId]: { status: newStatus },
+      };
+    });
   }
 
-  function handleNoteChange(workerId: number, note: string) {
-    setAttendance((prev) => ({
-      ...prev,
-      [workerId]: { ...(prev[workerId] || { status: "hadir" }), note },
-    }));
-  }
+  // Effect untuk sync attendance ke URL (persist pilihan sementara)
+  useEffect(() => {
+    if (workers.length === 0) return;
+
+    // Hanya simpan worker yang belum diabsen (belum save) dan sudah pilih status
+    const tempSelections: Record<number, AttendanceStatus> = {};
+    Object.entries(attendance).forEach(([id, state]) => {
+      const worker = workers.find(w => w.worker_id === Number(id));
+      // Hanya simpan jika: belum diabsen DAN sudah pilih status
+      if (worker && !worker.already_attended && state.status) {
+        tempSelections[Number(id)] = state.status;
+      }
+    });
+
+    // Update URL dengan pilihan sementara
+    const statusParam = Object.keys(tempSelections).length > 0 
+      ? encodeURIComponent(JSON.stringify(tempSelections))
+      : "";
+    
+    // Hanya update jika berbeda dengan URL saat ini
+    const currentStatus = searchParams.get("status") || "";
+    if (statusParam !== currentStatus) {
+      console.log("🔄 Updating URL with temp selections:", tempSelections);
+      updateParams({ status: statusParam });
+    }
+  }, [attendance, workers]);
 
   async function handleSave() {
     if (!selectedProject) {
@@ -136,16 +186,26 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
     setSubmitting(true);
     try {
       const today = new Date().toISOString().split("T")[0];
+      
+      // Filter: hanya worker yang sudah pilih status yang akan di-submit
+      const workersToSubmit = workers
+        .filter((w) => !w.already_attended) // belum diabsen hari ini
+        .filter((w) => attendance[w.worker_id]?.status !== undefined) // sudah pilih status
+        .map((w) => ({
+          worker_id: w.worker_id,
+          status: attendance[w.worker_id].status!,
+        }));
+
+      if (workersToSubmit.length === 0) {
+        toast.error("Tidak ada pekerja yang dipilih statusnya!");
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         project_id: Number(selectedProject),
         date: today,
-        attendances: workers
-          .filter((w) => !w.already_attended)
-          .map((w) => ({
-            worker_id: w.worker_id,
-            status: attendance[w.worker_id]?.status || "hadir",
-            note: attendance[w.worker_id]?.note || "",
-          })),
+        attendances: workersToSubmit,
       };
 
       const res = await fetch("/api/attendance", {
@@ -160,10 +220,23 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
 
       toast.success("Data absensi berhasil disimpan!");
 
+      // Reload data worker dengan status terbaru dari database
       const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${today}`);
       if (updatedRes.ok) {
         const { data } = await updatedRes.json();
         setWorkers(data);
+        
+        // Update attendance state dengan data terbaru
+        const updatedState: Record<number, WorkerAttendanceState> = {};
+        (data as WorkerRow[]).forEach((w) => {
+          updatedState[w.worker_id] = {
+            status: w.current_status || undefined,
+          };
+        });
+        setAttendance(updatedState);
+        
+        // Clear URL params status karena sudah tersimpan di database
+        updateParams({ status: "" });
       }
       
       router.refresh(); // Auto-refresh untuk update UI
@@ -175,7 +248,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
   }
 
   const hasUnsavedChanges = workers.some(
-    (w) => !w.already_attended && attendance[w.worker_id]?.status !== w.current_status
+    (w) => !w.already_attended && attendance[w.worker_id]?.status !== undefined && attendance[w.worker_id]?.status !== w.current_status
   );
 
   // Filter workers berdasarkan search term
@@ -332,38 +405,37 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
             <thead>
               <tr>
                 <th style={{ width: "48px", textAlign: "center" }}>No</th>
-                <th style={{ width: "30%" }}>Nama Pekerja</th>
-                <th style={{ width: "42%" }}>Kehadiran</th>
-                <th style={{ width: "28%" }}>Keterangan (Opsional)</th>
+                <th style={{ width: "35%" }}>Nama Pekerja</th>
+                <th style={{ width: "65%" }}>Kehadiran</th>
               </tr>
             </thead>
             <tbody>
               {loading && !selectedProject ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "32px" }}>Loading...</td>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px" }}>Loading...</td>
                 </tr>
               ) : !selectedProject ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     Silakan pilih proyek terlebih dahulu.
                   </td>
                 </tr>
               ) : workers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     Tidak ada pekerja yang ditugaskan di proyek ini.
                   </td>
                 </tr>
               ) : filteredWorkers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                  <td colSpan={3} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     Tidak ada pekerja dengan nama &quot;{searchTerm}&quot;.
                   </td>
                 </tr>
               ) : (
                 filteredWorkers.map((worker, index) => {
                   const isAlreadyAttended = !!worker.already_attended;
-                  const currentStatus = attendance[worker.worker_id]?.status || "hadir";
+                  const currentStatus = attendance[worker.worker_id]?.status; // bisa undefined
 
                   return (
                     <tr key={worker.worker_id}>
@@ -414,30 +486,26 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                                     : "selected"
                                   : ""
                               }`}
-                              style={{ opacity: isAlreadyAttended ? 0.5 : 1 }}
+                              style={{ opacity: isAlreadyAttended ? 0.5 : 1, cursor: isAlreadyAttended ? 'not-allowed' : 'pointer' }}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isAlreadyAttended) {
+                                  handleStatusChange(worker.worker_id, status);
+                                }
+                              }}
                             >
                               <input
                                 type="radio"
                                 disabled={isAlreadyAttended}
                                 name={`status-${worker.worker_id}`}
                                 checked={currentStatus === status}
-                                onChange={() => handleStatusChange(worker.worker_id, status)}
+                                onChange={() => {}} // Dummy onChange untuk controlled component
+                                style={{ pointerEvents: 'none' }}
                               />
                               {status.charAt(0).toUpperCase() + status.slice(1)}
                             </label>
                           ))}
                         </div>
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          disabled={isAlreadyAttended}
-                          placeholder="Tambahkan catatan..."
-                          className="input-field"
-                          value={attendance[worker.worker_id]?.note || ""}
-                          onChange={(e) => handleNoteChange(worker.worker_id, e.target.value)}
-                          style={{ opacity: isAlreadyAttended ? 0.6 : 1 }}
-                        />
                       </td>
                     </tr>
                   );
