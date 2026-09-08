@@ -78,6 +78,11 @@ export function PekerjaClient({
   const [formData, setFormData] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  
+  // State untuk modal warning duplikasi
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [duplicateWorkerName, setDuplicateWorkerName] = useState("");
+  const [pendingSubmitData, setPendingSubmitData] = useState<any>(null);
 
   function openAddModal() {
     setEditingWorker(null);
@@ -124,6 +129,45 @@ export function PekerjaClient({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Check duplikasi nama hanya saat menambah pekerja baru (bukan saat edit)
+    if (!editingWorker) {
+      const isDuplicate = workers.some(
+        (w) =>
+          w.name.toLowerCase().trim() === formData.name.toLowerCase().trim() &&
+          String(w.projectId) === formData.project_id
+      );
+
+      if (isDuplicate) {
+        // Tampilkan modal warning duplikasi
+        setDuplicateWorkerName(formData.name);
+        setShowDuplicateWarning(true);
+        // Simpan data untuk submit nanti jika user tetap ingin menambahkan
+        setPendingSubmitData({
+          name: formData.name,
+          phone: formData.phone || null,
+          address: formData.address || null,
+          project_id: Number(formData.project_id),
+          position_id: Number(formData.position_id),
+          is_active: formData.is_active,
+        });
+        return; // Stop submit, tunggu keputusan user
+      }
+    }
+
+    // Lanjutkan submit normal
+    await performSubmit({
+      name: formData.name,
+      phone: formData.phone || null,
+      address: formData.address || null,
+      project_id: Number(formData.project_id),
+      position_id: Number(formData.position_id),
+      is_active: formData.is_active,
+    });
+  }
+
+  // Fungsi untuk melakukan submit actual (dipanggil dari handleSubmit atau dari modal warning)
+  async function performSubmit(payload: any) {
     setSubmitting(true);
     try {
       const url = editingWorker ? `/api/workers/${editingWorker.id}` : "/api/workers";
@@ -132,14 +176,7 @@ export function PekerjaClient({
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone || null,
-          address: formData.address || null,
-          project_id: Number(formData.project_id),
-          position_id: Number(formData.position_id),
-          is_active: formData.is_active,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -150,13 +187,14 @@ export function PekerjaClient({
 
       const { data } = await res.json();
       setIsModalOpen(false);
+      setShowDuplicateWarning(false); // Tutup modal warning jika ada
 
       if (editingWorker) {
         setWorkers((prev) => prev.map((w) => (w.id === editingWorker.id ? data : w)));
-        toast.success(`Data pekerja "${formData.name}" berhasil diperbarui.`);
+        toast.success(`Data pekerja "${payload.name}" berhasil diperbarui.`);
       } else {
         setWorkers((prev) => [...prev, data]);
-        toast.success(`Pekerja baru "${formData.name}" berhasil ditambahkan.`);
+        toast.success(`Pekerja baru "${payload.name}" berhasil ditambahkan.`);
       }
       router.refresh();
     } catch {
@@ -164,6 +202,20 @@ export function PekerjaClient({
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // Handle "Tetap Tambahkan" dari modal warning
+  function handleConfirmDuplicate() {
+    if (pendingSubmitData) {
+      performSubmit(pendingSubmitData);
+    }
+  }
+
+  // Handle "Batal" dari modal warning
+  function handleCancelDuplicate() {
+    setShowDuplicateWarning(false);
+    setPendingSubmitData(null);
+    setDuplicateWorkerName("");
   }
 
   const displayWorkers = workers
@@ -426,6 +478,91 @@ export function PekerjaClient({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Warning Duplikasi */}
+      {showDuplicateWarning && (
+        <div className="modal-overlay" style={{ zIndex: 1001 }}>
+          <div className="modal-content" style={{ maxWidth: "480px" }}>
+            <div className="modal-header" style={{ borderBottom: "none", paddingBottom: "8px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    backgroundColor: "#fef3c7",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    fill="none"
+                    stroke="#f59e0b"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
+                  ⚠️ Pekerja Sudah Terdaftar
+                </h2>
+              </div>
+            </div>
+
+            <div className="modal-body" style={{ paddingTop: "16px" }}>
+              <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", color: "var(--text-muted)" }}>
+                <strong style={{ color: "var(--text-primary)" }}>{duplicateWorkerName}</strong> sudah terdaftar di proyek ini.
+                <br />
+                Apakah kamu tetap ingin menambahkan?
+              </p>
+            </div>
+
+            <div className="modal-footer" style={{ gap: "12px" }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleCancelDuplicate}
+                style={{ flex: 1 }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleConfirmDuplicate}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  backgroundColor: "#f59e0b",
+                  borderColor: "#f59e0b",
+                }}
+                onMouseEnter={(e) => {
+                  if (!submitting) {
+                    e.currentTarget.style.backgroundColor = "#d97706";
+                    e.currentTarget.style.borderColor = "#d97706";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#f59e0b";
+                  e.currentTarget.style.borderColor = "#f59e0b";
+                }}
+              >
+                {submitting ? "Menyimpan..." : "Tetap Tambahkan"}
+              </button>
+            </div>
           </div>
         </div>
       )}
