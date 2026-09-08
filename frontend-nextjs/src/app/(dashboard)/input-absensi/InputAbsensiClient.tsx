@@ -1030,6 +1030,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                   fontSize: "14px",
                   fontWeight: 600,
                   transition: "all 0.2s",
+                  flex: 1,
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = "#dc2626";
@@ -1041,11 +1042,11 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 }}
                 disabled={submitting}
               >
-                🗑️ Batalkan Absensi
+                Batalkan Absensi
               </button>
 
               {/* Tombol Batal & Simpan (kanan) */}
-              <div style={{ display: "flex", gap: "12px" }}>
+              <div style={{ display: "flex", gap: "12px", flex: 2 }}>
                 <button
                   className="btn-secondary"
                   onClick={() => {
@@ -1053,7 +1054,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                     setEditingWorker(null);
                     setTempEditStatus(undefined);
                   }}
-                  style={{ padding: "10px 20px" }}
+                  style={{ padding: "10px 20px", flex: 1 }}
                   disabled={submitting}
                 >
                   Batal
@@ -1061,7 +1062,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 <button
                   className="btn-primary"
                   onClick={handleSaveEdit}
-                  style={{ padding: "10px 20px" }}
+                  style={{ padding: "10px 20px", flex: 1 }}
                   disabled={submitting || !tempEditStatus}
                 >
                   {submitting ? "Menyimpan..." : "Simpan"}
