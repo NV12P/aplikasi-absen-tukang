@@ -20,19 +20,53 @@ export const GET = apiHandler(async (req: NextRequest, { params }: Params) => {
       position: { select: { name: true } },
       attendances: {
         where: { date: dateObj },
-        select: { status: true },
+        select: { status: true, projectId: true },
       },
     },
     orderBy: { name: "asc" },
   });
 
-  const data = workers.map((w) => ({
-    worker_id: Number(w.id),
-    worker_name: w.name,
-    position: w.position?.name ?? "-",
-    current_status: w.attendances[0]?.status ?? null,
-    already_attended: w.attendances.length > 0,
-  }));
+  // Untuk setiap worker, cek apakah ada pekerja dengan NAMA SAMA sudah hadir di proyek lain
+  const data = await Promise.all(
+    workers.map(async (w) => {
+      const currentAttendance = w.attendances.find(
+        (a) => a.projectId === BigInt(id)
+      );
+      
+      // Cek apakah ada pekerja dengan nama sama (case-insensitive) sudah hadir di proyek lain
+      const attendanceInOtherProject = await prisma.attendance.findFirst({
+        where: {
+          date: dateObj,
+          projectId: { not: BigInt(id) },
+          status: "hadir",
+          worker: {
+            name: {
+              equals: w.name,
+              mode: 'insensitive',
+            },
+          },
+        },
+        include: {
+          project: { select: { name: true } },
+          worker: { select: { name: true } },
+        },
+      });
+
+      return {
+        worker_id: Number(w.id),
+        worker_name: w.name,
+        position: w.position?.name ?? "-",
+        current_status: currentAttendance?.status ?? null,
+        already_attended: !!currentAttendance,
+        attended_other_project: attendanceInOtherProject
+          ? {
+              project_name: attendanceInOtherProject.project.name,
+              status: attendanceInOtherProject.status,
+            }
+          : null,
+      };
+    })
+  );
 
   return NextResponse.json({ data });
 });

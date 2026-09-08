@@ -1325,10 +1325,12 @@ export namespace Prisma {
 
   export type ProjectCountOutputType = {
     workers: number
+    attendances: number
   }
 
   export type ProjectCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     workers?: boolean | ProjectCountOutputTypeCountWorkersArgs
+    attendances?: boolean | ProjectCountOutputTypeCountAttendancesArgs
   }
 
   // Custom InputTypes
@@ -1347,6 +1349,13 @@ export namespace Prisma {
    */
   export type ProjectCountOutputTypeCountWorkersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WorkerWhereInput
+  }
+
+  /**
+   * ProjectCountOutputType without action
+   */
+  export type ProjectCountOutputTypeCountAttendancesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AttendanceWhereInput
   }
 
 
@@ -3524,6 +3533,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     workers?: boolean | Project$workersArgs<ExtArgs>
+    attendances?: boolean | Project$attendancesArgs<ExtArgs>
     foreman?: boolean | Project$foremanArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["project"]>
@@ -3554,6 +3564,7 @@ export namespace Prisma {
 
   export type ProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     workers?: boolean | Project$workersArgs<ExtArgs>
+    attendances?: boolean | Project$attendancesArgs<ExtArgs>
     foreman?: boolean | Project$foremanArgs<ExtArgs>
     _count?: boolean | ProjectCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -3563,6 +3574,7 @@ export namespace Prisma {
     name: "Project"
     objects: {
       workers: Prisma.$WorkerPayload<ExtArgs>[]
+      attendances: Prisma.$AttendancePayload<ExtArgs>[]
       foreman: Prisma.$ForemanPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -3940,6 +3952,7 @@ export namespace Prisma {
   export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     workers<T extends Project$workersArgs<ExtArgs> = {}>(args?: Subset<T, Project$workersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkerPayload<ExtArgs>, T, "findMany"> | Null>
+    attendances<T extends Project$attendancesArgs<ExtArgs> = {}>(args?: Subset<T, Project$attendancesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendancePayload<ExtArgs>, T, "findMany"> | Null>
     foreman<T extends Project$foremanArgs<ExtArgs> = {}>(args?: Subset<T, Project$foremanArgs<ExtArgs>>): Prisma__ForemanClient<$Result.GetResult<Prisma.$ForemanPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -4310,6 +4323,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WorkerScalarFieldEnum | WorkerScalarFieldEnum[]
+  }
+
+  /**
+   * Project.attendances
+   */
+  export type Project$attendancesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Attendance
+     */
+    select?: AttendanceSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttendanceInclude<ExtArgs> | null
+    where?: AttendanceWhereInput
+    orderBy?: AttendanceOrderByWithRelationInput | AttendanceOrderByWithRelationInput[]
+    cursor?: AttendanceWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AttendanceScalarFieldEnum | AttendanceScalarFieldEnum[]
   }
 
   /**
@@ -6395,18 +6428,21 @@ export namespace Prisma {
   export type AttendanceAvgAggregateOutputType = {
     id: number | null
     workerId: number | null
+    projectId: number | null
     wage: number | null
   }
 
   export type AttendanceSumAggregateOutputType = {
     id: bigint | null
     workerId: bigint | null
+    projectId: bigint | null
     wage: number | null
   }
 
   export type AttendanceMinAggregateOutputType = {
     id: bigint | null
     workerId: bigint | null
+    projectId: bigint | null
     date: Date | null
     wage: number | null
     createdAt: Date | null
@@ -6417,6 +6453,7 @@ export namespace Prisma {
   export type AttendanceMaxAggregateOutputType = {
     id: bigint | null
     workerId: bigint | null
+    projectId: bigint | null
     date: Date | null
     wage: number | null
     createdAt: Date | null
@@ -6427,6 +6464,7 @@ export namespace Prisma {
   export type AttendanceCountAggregateOutputType = {
     id: number
     workerId: number
+    projectId: number
     date: number
     wage: number
     createdAt: number
@@ -6439,18 +6477,21 @@ export namespace Prisma {
   export type AttendanceAvgAggregateInputType = {
     id?: true
     workerId?: true
+    projectId?: true
     wage?: true
   }
 
   export type AttendanceSumAggregateInputType = {
     id?: true
     workerId?: true
+    projectId?: true
     wage?: true
   }
 
   export type AttendanceMinAggregateInputType = {
     id?: true
     workerId?: true
+    projectId?: true
     date?: true
     wage?: true
     createdAt?: true
@@ -6461,6 +6502,7 @@ export namespace Prisma {
   export type AttendanceMaxAggregateInputType = {
     id?: true
     workerId?: true
+    projectId?: true
     date?: true
     wage?: true
     createdAt?: true
@@ -6471,6 +6513,7 @@ export namespace Prisma {
   export type AttendanceCountAggregateInputType = {
     id?: true
     workerId?: true
+    projectId?: true
     date?: true
     wage?: true
     createdAt?: true
@@ -6568,6 +6611,7 @@ export namespace Prisma {
   export type AttendanceGroupByOutputType = {
     id: bigint
     workerId: bigint
+    projectId: bigint
     date: Date
     wage: number
     createdAt: Date | null
@@ -6597,28 +6641,33 @@ export namespace Prisma {
   export type AttendanceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     workerId?: boolean
+    projectId?: boolean
     date?: boolean
     wage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     status?: boolean
     worker?: boolean | WorkerDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
 
   export type AttendanceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     workerId?: boolean
+    projectId?: boolean
     date?: boolean
     wage?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     status?: boolean
     worker?: boolean | WorkerDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["attendance"]>
 
   export type AttendanceSelectScalar = {
     id?: boolean
     workerId?: boolean
+    projectId?: boolean
     date?: boolean
     wage?: boolean
     createdAt?: boolean
@@ -6628,19 +6677,23 @@ export namespace Prisma {
 
   export type AttendanceInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     worker?: boolean | WorkerDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
   }
   export type AttendanceIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     worker?: boolean | WorkerDefaultArgs<ExtArgs>
+    project?: boolean | ProjectDefaultArgs<ExtArgs>
   }
 
   export type $AttendancePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Attendance"
     objects: {
       worker: Prisma.$WorkerPayload<ExtArgs>
+      project: Prisma.$ProjectPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
       workerId: bigint
+      projectId: bigint
       date: Date
       wage: number
       createdAt: Date | null
@@ -7011,6 +7064,7 @@ export namespace Prisma {
   export interface Prisma__AttendanceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     worker<T extends WorkerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WorkerDefaultArgs<ExtArgs>>): Prisma__WorkerClient<$Result.GetResult<Prisma.$WorkerPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    project<T extends ProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProjectDefaultArgs<ExtArgs>>): Prisma__ProjectClient<$Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7042,6 +7096,7 @@ export namespace Prisma {
   interface AttendanceFieldRefs {
     readonly id: FieldRef<"Attendance", 'BigInt'>
     readonly workerId: FieldRef<"Attendance", 'BigInt'>
+    readonly projectId: FieldRef<"Attendance", 'BigInt'>
     readonly date: FieldRef<"Attendance", 'DateTime'>
     readonly wage: FieldRef<"Attendance", 'Int'>
     readonly createdAt: FieldRef<"Attendance", 'DateTime'>
@@ -7463,6 +7518,7 @@ export namespace Prisma {
   export const AttendanceScalarFieldEnum: {
     id: 'id',
     workerId: 'workerId',
+    projectId: 'projectId',
     date: 'date',
     wage: 'wage',
     createdAt: 'createdAt',
@@ -7734,6 +7790,7 @@ export namespace Prisma {
     createdAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     workers?: WorkerListRelationFilter
+    attendances?: AttendanceListRelationFilter
     foreman?: XOR<ForemanNullableRelationFilter, ForemanWhereInput> | null
   }
 
@@ -7748,6 +7805,7 @@ export namespace Prisma {
     createdAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrderInput | SortOrder
     workers?: WorkerOrderByRelationAggregateInput
+    attendances?: AttendanceOrderByRelationAggregateInput
     foreman?: ForemanOrderByWithRelationInput
   }
 
@@ -7765,6 +7823,7 @@ export namespace Prisma {
     createdAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Project"> | Date | string | null
     workers?: WorkerListRelationFilter
+    attendances?: AttendanceListRelationFilter
     foreman?: XOR<ForemanNullableRelationFilter, ForemanWhereInput> | null
   }, "id">
 
@@ -7951,43 +8010,50 @@ export namespace Prisma {
     NOT?: AttendanceWhereInput | AttendanceWhereInput[]
     id?: BigIntFilter<"Attendance"> | bigint | number
     workerId?: BigIntFilter<"Attendance"> | bigint | number
+    projectId?: BigIntFilter<"Attendance"> | bigint | number
     date?: DateTimeFilter<"Attendance"> | Date | string
     wage?: IntFilter<"Attendance"> | number
     createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
     status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
     worker?: XOR<WorkerRelationFilter, WorkerWhereInput>
+    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
   }
 
   export type AttendanceOrderByWithRelationInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     date?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrderInput | SortOrder
     updatedAt?: SortOrderInput | SortOrder
     status?: SortOrder
     worker?: WorkerOrderByWithRelationInput
+    project?: ProjectOrderByWithRelationInput
   }
 
   export type AttendanceWhereUniqueInput = Prisma.AtLeast<{
     id?: bigint | number
-    workerId_date?: AttendanceWorkerIdDateCompoundUniqueInput
+    workerId_projectId_date?: AttendanceWorkerIdProjectIdDateCompoundUniqueInput
     AND?: AttendanceWhereInput | AttendanceWhereInput[]
     OR?: AttendanceWhereInput[]
     NOT?: AttendanceWhereInput | AttendanceWhereInput[]
     workerId?: BigIntFilter<"Attendance"> | bigint | number
+    projectId?: BigIntFilter<"Attendance"> | bigint | number
     date?: DateTimeFilter<"Attendance"> | Date | string
     wage?: IntFilter<"Attendance"> | number
     createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
     updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
     status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
     worker?: XOR<WorkerRelationFilter, WorkerWhereInput>
-  }, "id" | "workerId_date">
+    project?: XOR<ProjectRelationFilter, ProjectWhereInput>
+  }, "id" | "workerId_projectId_date">
 
   export type AttendanceOrderByWithAggregationInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     date?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrderInput | SortOrder
@@ -8006,6 +8072,7 @@ export namespace Prisma {
     NOT?: AttendanceScalarWhereWithAggregatesInput | AttendanceScalarWhereWithAggregatesInput[]
     id?: BigIntWithAggregatesFilter<"Attendance"> | bigint | number
     workerId?: BigIntWithAggregatesFilter<"Attendance"> | bigint | number
+    projectId?: BigIntWithAggregatesFilter<"Attendance"> | bigint | number
     date?: DateTimeWithAggregatesFilter<"Attendance"> | Date | string
     wage?: IntWithAggregatesFilter<"Attendance"> | number
     createdAt?: DateTimeNullableWithAggregatesFilter<"Attendance"> | Date | string | null
@@ -8161,6 +8228,7 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     workers?: WorkerCreateNestedManyWithoutProjectInput
+    attendances?: AttendanceCreateNestedManyWithoutProjectInput
     foreman?: ForemanCreateNestedOneWithoutProjectInput
   }
 
@@ -8175,6 +8243,7 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     workers?: WorkerUncheckedCreateNestedManyWithoutProjectInput
+    attendances?: AttendanceUncheckedCreateNestedManyWithoutProjectInput
     foreman?: ForemanUncheckedCreateNestedOneWithoutProjectInput
   }
 
@@ -8189,6 +8258,7 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     workers?: WorkerUpdateManyWithoutProjectNestedInput
+    attendances?: AttendanceUpdateManyWithoutProjectNestedInput
     foreman?: ForemanUpdateOneWithoutProjectNestedInput
   }
 
@@ -8203,6 +8273,7 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     workers?: WorkerUncheckedUpdateManyWithoutProjectNestedInput
+    attendances?: AttendanceUncheckedUpdateManyWithoutProjectNestedInput
     foreman?: ForemanUncheckedUpdateOneWithoutProjectNestedInput
   }
 
@@ -8398,11 +8469,13 @@ export namespace Prisma {
     updatedAt?: Date | string | null
     status: $Enums.AttendanceStatus
     worker: WorkerCreateNestedOneWithoutAttendancesInput
+    project: ProjectCreateNestedOneWithoutAttendancesInput
   }
 
   export type AttendanceUncheckedCreateInput = {
     id?: bigint | number
     workerId: bigint | number
+    projectId: bigint | number
     date: Date | string
     wage: number
     createdAt?: Date | string | null
@@ -8418,11 +8491,13 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     worker?: WorkerUpdateOneRequiredWithoutAttendancesNestedInput
+    project?: ProjectUpdateOneRequiredWithoutAttendancesNestedInput
   }
 
   export type AttendanceUncheckedUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     workerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    projectId?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8433,6 +8508,7 @@ export namespace Prisma {
   export type AttendanceCreateManyInput = {
     id?: bigint | number
     workerId: bigint | number
+    projectId: bigint | number
     date: Date | string
     wage: number
     createdAt?: Date | string | null
@@ -8452,6 +8528,7 @@ export namespace Prisma {
   export type AttendanceUncheckedUpdateManyInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     workerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    projectId?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8729,9 +8806,19 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type AttendanceListRelationFilter = {
+    every?: AttendanceWhereInput
+    some?: AttendanceWhereInput
+    none?: AttendanceWhereInput
+  }
+
   export type ForemanNullableRelationFilter = {
     is?: ForemanWhereInput | null
     isNot?: ForemanWhereInput | null
+  }
+
+  export type AttendanceOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type ProjectCountOrderByAggregateInput = {
@@ -8846,19 +8933,9 @@ export namespace Prisma {
     projectId?: SortOrder
   }
 
-  export type AttendanceListRelationFilter = {
-    every?: AttendanceWhereInput
-    some?: AttendanceWhereInput
-    none?: AttendanceWhereInput
-  }
-
   export type PositionRelationFilter = {
     is?: PositionWhereInput
     isNot?: PositionWhereInput
-  }
-
-  export type AttendanceOrderByRelationAggregateInput = {
-    _count?: SortOrder
   }
 
   export type WorkerCountOrderByAggregateInput = {
@@ -8921,14 +8998,16 @@ export namespace Prisma {
     isNot?: WorkerWhereInput
   }
 
-  export type AttendanceWorkerIdDateCompoundUniqueInput = {
+  export type AttendanceWorkerIdProjectIdDateCompoundUniqueInput = {
     workerId: bigint | number
+    projectId: bigint | number
     date: Date | string
   }
 
   export type AttendanceCountOrderByAggregateInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     date?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrder
@@ -8939,12 +9018,14 @@ export namespace Prisma {
   export type AttendanceAvgOrderByAggregateInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     wage?: SortOrder
   }
 
   export type AttendanceMaxOrderByAggregateInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     date?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrder
@@ -8955,6 +9036,7 @@ export namespace Prisma {
   export type AttendanceMinOrderByAggregateInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     date?: SortOrder
     wage?: SortOrder
     createdAt?: SortOrder
@@ -8965,6 +9047,7 @@ export namespace Prisma {
   export type AttendanceSumOrderByAggregateInput = {
     id?: SortOrder
     workerId?: SortOrder
+    projectId?: SortOrder
     wage?: SortOrder
   }
 
@@ -9063,6 +9146,13 @@ export namespace Prisma {
     connect?: WorkerWhereUniqueInput | WorkerWhereUniqueInput[]
   }
 
+  export type AttendanceCreateNestedManyWithoutProjectInput = {
+    create?: XOR<AttendanceCreateWithoutProjectInput, AttendanceUncheckedCreateWithoutProjectInput> | AttendanceCreateWithoutProjectInput[] | AttendanceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttendanceCreateOrConnectWithoutProjectInput | AttendanceCreateOrConnectWithoutProjectInput[]
+    createMany?: AttendanceCreateManyProjectInputEnvelope
+    connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+  }
+
   export type ForemanCreateNestedOneWithoutProjectInput = {
     create?: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
     connectOrCreate?: ForemanCreateOrConnectWithoutProjectInput
@@ -9074,6 +9164,13 @@ export namespace Prisma {
     connectOrCreate?: WorkerCreateOrConnectWithoutProjectInput | WorkerCreateOrConnectWithoutProjectInput[]
     createMany?: WorkerCreateManyProjectInputEnvelope
     connect?: WorkerWhereUniqueInput | WorkerWhereUniqueInput[]
+  }
+
+  export type AttendanceUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<AttendanceCreateWithoutProjectInput, AttendanceUncheckedCreateWithoutProjectInput> | AttendanceCreateWithoutProjectInput[] | AttendanceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttendanceCreateOrConnectWithoutProjectInput | AttendanceCreateOrConnectWithoutProjectInput[]
+    createMany?: AttendanceCreateManyProjectInputEnvelope
+    connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
   }
 
   export type ForemanUncheckedCreateNestedOneWithoutProjectInput = {
@@ -9104,6 +9201,20 @@ export namespace Prisma {
     deleteMany?: WorkerScalarWhereInput | WorkerScalarWhereInput[]
   }
 
+  export type AttendanceUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<AttendanceCreateWithoutProjectInput, AttendanceUncheckedCreateWithoutProjectInput> | AttendanceCreateWithoutProjectInput[] | AttendanceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttendanceCreateOrConnectWithoutProjectInput | AttendanceCreateOrConnectWithoutProjectInput[]
+    upsert?: AttendanceUpsertWithWhereUniqueWithoutProjectInput | AttendanceUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: AttendanceCreateManyProjectInputEnvelope
+    set?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    disconnect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    delete?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    update?: AttendanceUpdateWithWhereUniqueWithoutProjectInput | AttendanceUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: AttendanceUpdateManyWithWhereWithoutProjectInput | AttendanceUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+  }
+
   export type ForemanUpdateOneWithoutProjectNestedInput = {
     create?: XOR<ForemanCreateWithoutProjectInput, ForemanUncheckedCreateWithoutProjectInput>
     connectOrCreate?: ForemanCreateOrConnectWithoutProjectInput
@@ -9126,6 +9237,20 @@ export namespace Prisma {
     update?: WorkerUpdateWithWhereUniqueWithoutProjectInput | WorkerUpdateWithWhereUniqueWithoutProjectInput[]
     updateMany?: WorkerUpdateManyWithWhereWithoutProjectInput | WorkerUpdateManyWithWhereWithoutProjectInput[]
     deleteMany?: WorkerScalarWhereInput | WorkerScalarWhereInput[]
+  }
+
+  export type AttendanceUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<AttendanceCreateWithoutProjectInput, AttendanceUncheckedCreateWithoutProjectInput> | AttendanceCreateWithoutProjectInput[] | AttendanceUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: AttendanceCreateOrConnectWithoutProjectInput | AttendanceCreateOrConnectWithoutProjectInput[]
+    upsert?: AttendanceUpsertWithWhereUniqueWithoutProjectInput | AttendanceUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: AttendanceCreateManyProjectInputEnvelope
+    set?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    disconnect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    delete?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    connect?: AttendanceWhereUniqueInput | AttendanceWhereUniqueInput[]
+    update?: AttendanceUpdateWithWhereUniqueWithoutProjectInput | AttendanceUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: AttendanceUpdateManyWithWhereWithoutProjectInput | AttendanceUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
   }
 
   export type ForemanUncheckedUpdateOneWithoutProjectNestedInput = {
@@ -9228,6 +9353,12 @@ export namespace Prisma {
     connect?: WorkerWhereUniqueInput
   }
 
+  export type ProjectCreateNestedOneWithoutAttendancesInput = {
+    create?: XOR<ProjectCreateWithoutAttendancesInput, ProjectUncheckedCreateWithoutAttendancesInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutAttendancesInput
+    connect?: ProjectWhereUniqueInput
+  }
+
   export type EnumAttendanceStatusFieldUpdateOperationsInput = {
     set?: $Enums.AttendanceStatus
   }
@@ -9238,6 +9369,14 @@ export namespace Prisma {
     upsert?: WorkerUpsertWithoutAttendancesInput
     connect?: WorkerWhereUniqueInput
     update?: XOR<XOR<WorkerUpdateToOneWithWhereWithoutAttendancesInput, WorkerUpdateWithoutAttendancesInput>, WorkerUncheckedUpdateWithoutAttendancesInput>
+  }
+
+  export type ProjectUpdateOneRequiredWithoutAttendancesNestedInput = {
+    create?: XOR<ProjectCreateWithoutAttendancesInput, ProjectUncheckedCreateWithoutAttendancesInput>
+    connectOrCreate?: ProjectCreateOrConnectWithoutAttendancesInput
+    upsert?: ProjectUpsertWithoutAttendancesInput
+    connect?: ProjectWhereUniqueInput
+    update?: XOR<XOR<ProjectUpdateToOneWithWhereWithoutAttendancesInput, ProjectUpdateWithoutAttendancesInput>, ProjectUncheckedUpdateWithoutAttendancesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -9584,6 +9723,36 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AttendanceCreateWithoutProjectInput = {
+    id?: bigint | number
+    date: Date | string
+    wage: number
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
+    worker: WorkerCreateNestedOneWithoutAttendancesInput
+  }
+
+  export type AttendanceUncheckedCreateWithoutProjectInput = {
+    id?: bigint | number
+    workerId: bigint | number
+    date: Date | string
+    wage: number
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
+  }
+
+  export type AttendanceCreateOrConnectWithoutProjectInput = {
+    where: AttendanceWhereUniqueInput
+    create: XOR<AttendanceCreateWithoutProjectInput, AttendanceUncheckedCreateWithoutProjectInput>
+  }
+
+  export type AttendanceCreateManyProjectInputEnvelope = {
+    data: AttendanceCreateManyProjectInput | AttendanceCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ForemanCreateWithoutProjectInput = {
     id?: bigint | number
     name: string
@@ -9619,6 +9788,36 @@ export namespace Prisma {
   export type WorkerUpdateManyWithWhereWithoutProjectInput = {
     where: WorkerScalarWhereInput
     data: XOR<WorkerUpdateManyMutationInput, WorkerUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type AttendanceUpsertWithWhereUniqueWithoutProjectInput = {
+    where: AttendanceWhereUniqueInput
+    update: XOR<AttendanceUpdateWithoutProjectInput, AttendanceUncheckedUpdateWithoutProjectInput>
+    create: XOR<AttendanceCreateWithoutProjectInput, AttendanceUncheckedCreateWithoutProjectInput>
+  }
+
+  export type AttendanceUpdateWithWhereUniqueWithoutProjectInput = {
+    where: AttendanceWhereUniqueInput
+    data: XOR<AttendanceUpdateWithoutProjectInput, AttendanceUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type AttendanceUpdateManyWithWhereWithoutProjectInput = {
+    where: AttendanceScalarWhereInput
+    data: XOR<AttendanceUpdateManyMutationInput, AttendanceUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type AttendanceScalarWhereInput = {
+    AND?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+    OR?: AttendanceScalarWhereInput[]
+    NOT?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
+    id?: BigIntFilter<"Attendance"> | bigint | number
+    workerId?: BigIntFilter<"Attendance"> | bigint | number
+    projectId?: BigIntFilter<"Attendance"> | bigint | number
+    date?: DateTimeFilter<"Attendance"> | Date | string
+    wage?: IntFilter<"Attendance"> | number
+    createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
+    updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
+    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
   }
 
   export type ForemanUpsertWithoutProjectInput = {
@@ -9659,6 +9858,7 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     workers?: WorkerCreateNestedManyWithoutProjectInput
+    attendances?: AttendanceCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectUncheckedCreateWithoutForemanInput = {
@@ -9672,6 +9872,7 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     workers?: WorkerUncheckedCreateNestedManyWithoutProjectInput
+    attendances?: AttendanceUncheckedCreateNestedManyWithoutProjectInput
   }
 
   export type ProjectCreateOrConnectWithoutForemanInput = {
@@ -9701,6 +9902,7 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     workers?: WorkerUpdateManyWithoutProjectNestedInput
+    attendances?: AttendanceUpdateManyWithoutProjectNestedInput
   }
 
   export type ProjectUncheckedUpdateWithoutForemanInput = {
@@ -9714,6 +9916,7 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     workers?: WorkerUncheckedUpdateManyWithoutProjectNestedInput
+    attendances?: AttendanceUncheckedUpdateManyWithoutProjectNestedInput
   }
 
   export type AttendanceCreateWithoutWorkerInput = {
@@ -9723,10 +9926,12 @@ export namespace Prisma {
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
     status: $Enums.AttendanceStatus
+    project: ProjectCreateNestedOneWithoutAttendancesInput
   }
 
   export type AttendanceUncheckedCreateWithoutWorkerInput = {
     id?: bigint | number
+    projectId: bigint | number
     date: Date | string
     wage: number
     createdAt?: Date | string | null
@@ -9779,6 +9984,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    attendances?: AttendanceCreateNestedManyWithoutProjectInput
     foreman?: ForemanCreateNestedOneWithoutProjectInput
   }
 
@@ -9792,6 +9998,7 @@ export namespace Prisma {
     isActive?: boolean
     createdAt?: Date | string | null
     updatedAt?: Date | string | null
+    attendances?: AttendanceUncheckedCreateNestedManyWithoutProjectInput
     foreman?: ForemanUncheckedCreateNestedOneWithoutProjectInput
   }
 
@@ -9814,19 +10021,6 @@ export namespace Prisma {
   export type AttendanceUpdateManyWithWhereWithoutWorkerInput = {
     where: AttendanceScalarWhereInput
     data: XOR<AttendanceUpdateManyMutationInput, AttendanceUncheckedUpdateManyWithoutWorkerInput>
-  }
-
-  export type AttendanceScalarWhereInput = {
-    AND?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
-    OR?: AttendanceScalarWhereInput[]
-    NOT?: AttendanceScalarWhereInput | AttendanceScalarWhereInput[]
-    id?: BigIntFilter<"Attendance"> | bigint | number
-    workerId?: BigIntFilter<"Attendance"> | bigint | number
-    date?: DateTimeFilter<"Attendance"> | Date | string
-    wage?: IntFilter<"Attendance"> | number
-    createdAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
-    updatedAt?: DateTimeNullableFilter<"Attendance"> | Date | string | null
-    status?: EnumAttendanceStatusFilter<"Attendance"> | $Enums.AttendanceStatus
   }
 
   export type PositionUpsertWithoutWorkersInput = {
@@ -9881,6 +10075,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attendances?: AttendanceUpdateManyWithoutProjectNestedInput
     foreman?: ForemanUpdateOneWithoutProjectNestedInput
   }
 
@@ -9894,6 +10089,7 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    attendances?: AttendanceUncheckedUpdateManyWithoutProjectNestedInput
     foreman?: ForemanUncheckedUpdateOneWithoutProjectNestedInput
   }
 
@@ -9924,6 +10120,39 @@ export namespace Prisma {
   export type WorkerCreateOrConnectWithoutAttendancesInput = {
     where: WorkerWhereUniqueInput
     create: XOR<WorkerCreateWithoutAttendancesInput, WorkerUncheckedCreateWithoutAttendancesInput>
+  }
+
+  export type ProjectCreateWithoutAttendancesInput = {
+    id?: bigint | number
+    name: string
+    location: string
+    description?: string | null
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    workers?: WorkerCreateNestedManyWithoutProjectInput
+    foreman?: ForemanCreateNestedOneWithoutProjectInput
+  }
+
+  export type ProjectUncheckedCreateWithoutAttendancesInput = {
+    id?: bigint | number
+    name: string
+    location: string
+    description?: string | null
+    startDate?: Date | string | null
+    endDate?: Date | string | null
+    isActive?: boolean
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    workers?: WorkerUncheckedCreateNestedManyWithoutProjectInput
+    foreman?: ForemanUncheckedCreateNestedOneWithoutProjectInput
+  }
+
+  export type ProjectCreateOrConnectWithoutAttendancesInput = {
+    where: ProjectWhereUniqueInput
+    create: XOR<ProjectCreateWithoutAttendancesInput, ProjectUncheckedCreateWithoutAttendancesInput>
   }
 
   export type WorkerUpsertWithoutAttendancesInput = {
@@ -9959,6 +10188,45 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type ProjectUpsertWithoutAttendancesInput = {
+    update: XOR<ProjectUpdateWithoutAttendancesInput, ProjectUncheckedUpdateWithoutAttendancesInput>
+    create: XOR<ProjectCreateWithoutAttendancesInput, ProjectUncheckedCreateWithoutAttendancesInput>
+    where?: ProjectWhereInput
+  }
+
+  export type ProjectUpdateToOneWithWhereWithoutAttendancesInput = {
+    where?: ProjectWhereInput
+    data: XOR<ProjectUpdateWithoutAttendancesInput, ProjectUncheckedUpdateWithoutAttendancesInput>
+  }
+
+  export type ProjectUpdateWithoutAttendancesInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workers?: WorkerUpdateManyWithoutProjectNestedInput
+    foreman?: ForemanUpdateOneWithoutProjectNestedInput
+  }
+
+  export type ProjectUncheckedUpdateWithoutAttendancesInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    name?: StringFieldUpdateOperationsInput | string
+    location?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workers?: WorkerUncheckedUpdateManyWithoutProjectNestedInput
+    foreman?: ForemanUncheckedUpdateOneWithoutProjectNestedInput
   }
 
   export type WorkerCreateManyPositionInput = {
@@ -10018,6 +10286,16 @@ export namespace Prisma {
     updatedAt?: Date | string | null
   }
 
+  export type AttendanceCreateManyProjectInput = {
+    id?: bigint | number
+    workerId: bigint | number
+    date: Date | string
+    wage: number
+    createdAt?: Date | string | null
+    updatedAt?: Date | string | null
+    status: $Enums.AttendanceStatus
+  }
+
   export type WorkerUpdateWithoutProjectInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
@@ -10053,8 +10331,39 @@ export namespace Prisma {
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type AttendanceUpdateWithoutProjectInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    wage?: IntFieldUpdateOperationsInput | number
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+    worker?: WorkerUpdateOneRequiredWithoutAttendancesNestedInput
+  }
+
+  export type AttendanceUncheckedUpdateWithoutProjectInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    workerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    wage?: IntFieldUpdateOperationsInput | number
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+  }
+
+  export type AttendanceUncheckedUpdateManyWithoutProjectInput = {
+    id?: BigIntFieldUpdateOperationsInput | bigint | number
+    workerId?: BigIntFieldUpdateOperationsInput | bigint | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    wage?: IntFieldUpdateOperationsInput | number
+    createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+  }
+
   export type AttendanceCreateManyWorkerInput = {
     id?: bigint | number
+    projectId: bigint | number
     date: Date | string
     wage: number
     createdAt?: Date | string | null
@@ -10069,10 +10378,12 @@ export namespace Prisma {
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+    project?: ProjectUpdateOneRequiredWithoutAttendancesNestedInput
   }
 
   export type AttendanceUncheckedUpdateWithoutWorkerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
+    projectId?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10082,6 +10393,7 @@ export namespace Prisma {
 
   export type AttendanceUncheckedUpdateManyWithoutWorkerInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
+    projectId?: BigIntFieldUpdateOperationsInput | bigint | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     wage?: IntFieldUpdateOperationsInput | number
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

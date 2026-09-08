@@ -177,6 +177,7 @@ exports.Prisma.WorkerScalarFieldEnum = {
 exports.Prisma.AttendanceScalarFieldEnum = {
   id: 'id',
   workerId: 'workerId',
+  projectId: 'projectId',
   date: 'date',
   wage: 'wage',
   createdAt: 'createdAt',

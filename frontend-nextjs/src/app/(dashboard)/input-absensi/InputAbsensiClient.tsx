@@ -17,6 +17,10 @@ interface WorkerRow {
   position: string;
   already_attended?: boolean;
   current_status: AttendanceStatus | null;
+  attended_other_project?: {
+    project_name: string;
+    status: AttendanceStatus;
+  } | null;
 }
 
 interface WorkerAttendanceState {
@@ -257,6 +261,58 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       router.refresh();
     } catch (err: any) {
       toast.error(err.message || "Gagal mengupdate absensi");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // Fungsi untuk batalkan/hapus absensi
+  async function handleDeleteAttendance() {
+    if (!editingWorker || !selectedProject) {
+      return;
+    }
+
+    if (!window.confirm(`Apakah Anda yakin ingin membatalkan absensi ${editingWorker.worker_name}?`)) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+
+      const res = await fetch(
+        `/api/attendance?workerId=${editingWorker.worker_id}&projectId=${selectedProject}&date=${dateStr}`,
+        { method: "DELETE" }
+      );
+
+      if (!res.ok) {
+        throw new Error("Gagal membatalkan absensi");
+      }
+
+      toast.success(`Absensi ${editingWorker.worker_name} berhasil dibatalkan!`);
+
+      // Reload data
+      const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${dateStr}`);
+      if (updatedRes.ok) {
+        const { data } = await updatedRes.json();
+        setWorkers(data);
+        
+        const updatedState: Record<number, WorkerAttendanceState> = {};
+        (data as WorkerRow[]).forEach((w) => {
+          updatedState[w.worker_id] = {
+            status: w.current_status || undefined,
+          };
+        });
+        setAttendance(updatedState);
+      }
+      
+      // Close modal dan reset state
+      setEditModalOpen(false);
+      setEditingWorker(null);
+      setTempEditStatus(undefined);
+      router.refresh();
+    } catch (err: any) {
+      toast.error(err.message || "Gagal membatalkan absensi");
     } finally {
       setSubmitting(false);
     }
@@ -677,6 +733,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
               ) : (
                 filteredWorkers.map((worker, index) => {
                   const isAlreadyAttended = !!worker.already_attended;
+                  const hasAttendedOtherProject = !!worker.attended_other_project;
                   const currentStatus = attendance[worker.worker_id]?.status; // bisa undefined
 
                   return (
@@ -684,11 +741,13 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                       <td style={{ textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>{index + 1}</td>
                       <td>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                             <span style={{ fontWeight: 600, fontSize: "14px" }}>
                               {worker.worker_name}
                             </span>
-                            {isAlreadyAttended && (
+                            
+                            {/* Badge: Sudah Diabsen (di proyek ini) */}
+                            {isAlreadyAttended && !hasAttendedOtherProject && (
                               <span
                                 style={{
                                   background: "#dcfce7",
@@ -710,6 +769,41 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                                 Sudah Diabsen
                               </span>
                             )}
+                            
+                            {/* Badge: Sudah Absen di Proyek Lain */}
+                            {hasAttendedOtherProject && (
+                              <span
+                                style={{
+                                  background: "#fef3c7",
+                                  color: "#92400e",
+                                  fontSize: "10px",
+                                  padding: "3px 8px",
+                                  borderRadius: "4px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  fontWeight: 600,
+                                  whiteSpace: "nowrap",
+                                  border: "1px solid #fcd34d",
+                                }}
+                              >
+                                <svg
+                                  width="10"
+                                  height="10"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2.5}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                  />
+                                </svg>
+                                Sudah Absen di Proyek Lain
+                              </span>
+                            )}
                           </div>
                           <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
                             {worker.position || "-"}
@@ -719,38 +813,48 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                       <td>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <div className="radio-group" style={{ flex: 1 }}>
-                            {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
-                              <label
-                                key={status}
-                                className={`radio-label ${
-                                  currentStatus === status
-                                    ? status === "alpha"
-                                      ? "selected danger"
-                                      : "selected"
-                                    : ""
-                                }`}
-                                style={{ 
-                                  opacity: isAlreadyAttended ? 0.5 : 1, 
-                                  cursor: isAlreadyAttended ? 'not-allowed' : 'pointer' 
-                                }}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (!isAlreadyAttended) {
-                                    handleStatusChange(worker.worker_id, status);
+                            {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => {
+                              // Disable "hadir" jika sudah hadir di proyek lain
+                              const isDisabled = isAlreadyAttended || (hasAttendedOtherProject && status === "hadir");
+                              
+                              return (
+                                <label
+                                  key={status}
+                                  className={`radio-label ${
+                                    currentStatus === status
+                                      ? status === "alpha"
+                                        ? "selected danger"
+                                        : "selected"
+                                      : ""
+                                  }`}
+                                  style={{ 
+                                    opacity: isDisabled ? 0.5 : 1, 
+                                    cursor: isDisabled ? 'not-allowed' : 'pointer' 
+                                  }}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!isDisabled) {
+                                      handleStatusChange(worker.worker_id, status);
+                                    }
+                                  }}
+                                  title={
+                                    hasAttendedOtherProject && status === "hadir"
+                                      ? `Tidak bisa hadir karena sudah hadir di ${worker.attended_other_project?.project_name}`
+                                      : undefined
                                   }
-                                }}
-                              >
-                                <input
-                                  type="radio"
-                                  disabled={isAlreadyAttended}
-                                  name={`status-${worker.worker_id}`}
-                                  checked={currentStatus === status}
-                                  onChange={() => {}} // Dummy onChange untuk controlled component
-                                  style={{ pointerEvents: 'none' }}
-                                />
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
-                              </label>
-                            ))}
+                                >
+                                  <input
+                                    type="radio"
+                                    disabled={isDisabled}
+                                    name={`status-${worker.worker_id}`}
+                                    checked={currentStatus === status}
+                                    onChange={() => {}} // Dummy onChange untuk controlled component
+                                    style={{ pointerEvents: 'none' }}
+                                  />
+                                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                                </label>
+                              );
+                            })}
                           </div>
                           {isAlreadyAttended && (
                             <button
@@ -840,6 +944,24 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
               <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--text-muted)" }}>
                 Status saat ini: <strong>{editingWorker.current_status?.toUpperCase()}</strong>
               </p>
+              
+              {/* Warning jika sudah hadir di proyek lain */}
+              {editingWorker.attended_other_project && (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    padding: "10px 12px",
+                    background: "#fef3c7",
+                    border: "1px solid #fcd34d",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    color: "#92400e",
+                  }}
+                >
+                  ⚠️ Pekerja ini sudah hadir di <strong>{editingWorker.attended_other_project.project_name}</strong>. 
+                  Status <strong>Hadir</strong> tidak dapat dipilih.
+                </div>
+              )}
             </div>
 
             <div style={{ marginBottom: "24px" }}>
@@ -847,58 +969,104 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 Pilih Status Baru
               </label>
               <div className="radio-group" style={{ flexDirection: "column", gap: "8px" }}>
-                {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => (
-                  <label
-                    key={status}
-                    className={`radio-label ${
-                      tempEditStatus === status
-                        ? status === "alpha"
-                          ? "selected danger"
-                          : "selected"
-                        : ""
-                    }`}
-                    style={{ 
-                      cursor: "pointer", 
-                      width: "100%",
-                      justifyContent: "flex-start",
-                      padding: "12px 16px"
-                    }}
-                    onClick={() => setTempEditStatus(status)}
-                  >
-                    <input
-                      type="radio"
-                      name="edit-status"
-                      checked={tempEditStatus === status}
-                      onChange={() => {}}
-                      style={{ pointerEvents: "none" }}
-                    />
-                    <span style={{ flex: 1 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
-                  </label>
-                ))}
+                {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => {
+                  // Disable "hadir" jika sudah hadir di proyek lain
+                  const isDisabled = editingWorker.attended_other_project && status === "hadir";
+                  
+                  return (
+                    <label
+                      key={status}
+                      className={`radio-label ${
+                        tempEditStatus === status
+                          ? status === "alpha"
+                            ? "selected danger"
+                            : "selected"
+                          : ""
+                      }`}
+                      style={{ 
+                        cursor: isDisabled ? "not-allowed" : "pointer",
+                        opacity: isDisabled ? 0.5 : 1, 
+                        width: "100%",
+                        justifyContent: "flex-start",
+                        padding: "12px 16px"
+                      }}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          setTempEditStatus(status);
+                        }
+                      }}
+                      title={
+                        isDisabled
+                          ? `Tidak bisa hadir karena sudah hadir di ${editingWorker.attended_other_project?.project_name}`
+                          : undefined
+                      }
+                    >
+                      <input
+                        type="radio"
+                        name="edit-status"
+                        checked={tempEditStatus === status}
+                        disabled={!!isDisabled}
+                        onChange={() => {}}
+                        style={{ pointerEvents: "none" }}
+                      />
+                      <span style={{ flex: 1 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "space-between", alignItems: "center" }}>
+              {/* Tombol Batalkan Absensi (kiri) */}
               <button
-                className="btn-secondary"
-                onClick={() => {
-                  setEditModalOpen(false);
-                  setEditingWorker(null);
-                  setTempEditStatus(undefined);
+                onClick={handleDeleteAttendance}
+                style={{
+                  padding: "10px 20px",
+                  background: "#fff",
+                  color: "#dc2626",
+                  border: "1px solid #dc2626",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  transition: "all 0.2s",
                 }}
-                style={{ padding: "10px 20px" }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#dc2626";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#fff";
+                  e.currentTarget.style.color = "#dc2626";
+                }}
                 disabled={submitting}
               >
-                Batal
+                🗑️ Batalkan Absensi
               </button>
-              <button
-                className="btn-primary"
-                onClick={handleSaveEdit}
-                style={{ padding: "10px 20px" }}
-                disabled={submitting || !tempEditStatus}
-              >
-                {submitting ? "Menyimpan..." : "Simpan"}
-              </button>
+
+              {/* Tombol Batal & Simpan (kanan) */}
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    setEditModalOpen(false);
+                    setEditingWorker(null);
+                    setTempEditStatus(undefined);
+                  }}
+                  style={{ padding: "10px 20px" }}
+                  disabled={submitting}
+                >
+                  Batal
+                </button>
+                <button
+                  className="btn-primary"
+                  onClick={handleSaveEdit}
+                  style={{ padding: "10px 20px" }}
+                  disabled={submitting || !tempEditStatus}
+                >
+                  {submitting ? "Menyimpan..." : "Simpan"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
