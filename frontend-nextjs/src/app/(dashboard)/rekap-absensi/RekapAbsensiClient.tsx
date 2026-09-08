@@ -149,16 +149,21 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         const { data } = await res.json();
         const rawWorkers = data?.workers ?? [];
 
-        setWorkerRows(
-          rawWorkers.map((item: any) => ({
-            worker_id: item.worker_id ?? item.id,
-            worker_name: item.worker_name ?? item.name,
-            position: item.position,
-            daily_wage: item.daily_wage ?? 0,
-            days: item.days ?? {},
-            total_wage: item.total_wage ?? 0,
-          }))
-        );
+        const mappedWorkers = rawWorkers.map((item: any) => ({
+          worker_id: item.worker_id ?? item.id,
+          worker_name: item.worker_name ?? item.name,
+          position: item.position,
+          daily_wage: item.daily_wage ?? 0,
+          days: item.days ?? {},
+          total_wage: item.total_wage ?? 0,
+        }));
+        
+        // Sort workers by daily_wage (descending: terbesar ke terkecil)
+        const sortedWorkers = mappedWorkers.sort((a: any, b: any) => {
+          return (b.daily_wage || 0) - (a.daily_wage || 0);
+        });
+
+        setWorkerRows(sortedWorkers);
       } catch (err: any) {
         toast.error(err.message || "Error fetching report");
       } finally {

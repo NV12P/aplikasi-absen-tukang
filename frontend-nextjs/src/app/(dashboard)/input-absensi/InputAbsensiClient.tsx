@@ -15,6 +15,7 @@ interface WorkerRow {
   worker_id: number;
   worker_name: string;
   position: string;
+  daily_wage?: number;
   already_attended?: boolean;
   current_status: AttendanceStatus | null;
   attended_other_project?: {
@@ -132,7 +133,15 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
         }
 
         const { data } = await res.json();
-        setWorkers(data);
+        
+        // Sort workers by daily_wage (descending: terbesar ke terkecil)
+        const sortedData = (data as WorkerRow[]).sort((a: any, b: any) => {
+          const wageA = a.daily_wage || 0;
+          const wageB = b.daily_wage || 0;
+          return wageB - wageA; // descending
+        });
+        
+        setWorkers(sortedData);
 
         const initialState: Record<number, WorkerAttendanceState> = {};
         
@@ -243,7 +252,15 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${dateStr}`);
       if (updatedRes.ok) {
         const { data } = await updatedRes.json();
-        setWorkers(data);
+        
+        // Sort workers by daily_wage (descending)
+        const sortedData = (data as WorkerRow[]).sort((a: any, b: any) => {
+          const wageA = a.daily_wage || 0;
+          const wageB = b.daily_wage || 0;
+          return wageB - wageA;
+        });
+        
+        setWorkers(sortedData);
         
         const updatedState: Record<number, WorkerAttendanceState> = {};
         (data as WorkerRow[]).forEach((w) => {
@@ -295,7 +312,15 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       const updatedRes = await fetch(`/api/attendance/project/${selectedProject}?date=${dateStr}`);
       if (updatedRes.ok) {
         const { data } = await updatedRes.json();
-        setWorkers(data);
+        
+        // Sort workers by daily_wage (descending)
+        const sortedData = (data as WorkerRow[]).sort((a: any, b: any) => {
+          const wageA = a.daily_wage || 0;
+          const wageB = b.daily_wage || 0;
+          return wageB - wageA;
+        });
+        
+        setWorkers(sortedData);
         
         const updatedState: Record<number, WorkerAttendanceState> = {};
         (data as WorkerRow[]).forEach((w) => {
