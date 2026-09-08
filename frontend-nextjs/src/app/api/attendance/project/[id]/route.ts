@@ -17,7 +17,7 @@ export const GET = apiHandler(async (req: NextRequest, { params }: Params) => {
   const workers = await prisma.worker.findMany({
     where: { projectId: BigInt(id), isActive: true },
     include: {
-      position: { select: { name: true } },
+      position: { select: { name: true, dailyWage: true } },
       attendances: {
         where: { date: dateObj },
         select: { status: true, projectId: true },
@@ -56,7 +56,7 @@ export const GET = apiHandler(async (req: NextRequest, { params }: Params) => {
         worker_id: Number(w.id),
         worker_name: w.name,
         position: w.position?.name ?? "-",
-        daily_wage: w.dailyWage ?? 0,
+        daily_wage: w.position?.dailyWage ?? 0,
         current_status: currentAttendance?.status ?? null,
         already_attended: !!currentAttendance,
         attended_other_project: attendanceInOtherProject
