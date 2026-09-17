@@ -41,11 +41,10 @@ export const GET = apiHandler(async (req: NextRequest) => {
     where: { projectId: BigInt(projectId) },
   });
 
-  const attMap = new Map<string, { status: string; wage: number }>();
+  const attMap = new Map<string, { status: string }>();
   for (const att of attendances) {
     attMap.set(`${att.workerId}_${att.date.toISOString().split("T")[0]}`, {
       status: att.status,
-      wage: att.wage,
     });
   }
 
@@ -142,9 +141,30 @@ export const GET = apiHandler(async (req: NextRequest) => {
     dates.forEach((d) => {
       const key = `${worker.id}_${d.toISOString().split("T")[0]}`;
       const att = attMap.get(key);
-      cells.push(att?.status ?? "");
-      statusList.push(att?.status ?? null);
-      totalWage += att?.wage ?? 0;
+      const status = att?.status ?? null;
+      
+      cells.push(status ?? "");
+      statusList.push(status);
+      
+      // Calculate wage based on current position rates
+      let dayWage = 0;
+      if (status) {
+        switch (status) {
+          case "hadir":
+            dayWage = worker.position?.dailyWage ?? 0;
+            break;
+          case "lembur":
+            dayWage = worker.position?.overtimeWage ?? worker.position?.dailyWage ?? 0;
+            break;
+          case "cor":
+            dayWage = worker.position?.castingWage ?? worker.position?.dailyWage ?? 0;
+            break;
+          case "alpha":
+            dayWage = 0;
+            break;
+        }
+      }
+      totalWage += dayWage;
     });
 
     cells.push(totalWage);

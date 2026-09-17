@@ -26,7 +26,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
     prisma.project.findUnique({ where: { id: BigInt(projectId) }, select: { name: true } }),
     prisma.worker.findMany({
       where: { projectId: BigInt(projectId), isActive: true },
-      include: { position: { select: { name: true, dailyWage: true } } },
+      include: { position: { select: { name: true, dailyWage: true, overtimeWage: true, castingWage: true } } },
       orderBy: { name: "asc" },
     }),
     prisma.attendance.findMany({
@@ -40,12 +40,12 @@ export const GET = apiHandler(async (req: NextRequest) => {
 
   if (!project) return NextResponse.json({ error: "Proyek tidak ditemukan" }, { status: 404 });
 
-  const attMap = new Map<string, Map<string, { status: string; wage: number }>>();
+  const attMap = new Map<string, Map<string, { status: string }>>();
   for (const att of attendances) {
     const key = att.workerId.toString();
     const dateKey = att.date.toISOString().split("T")[0];
     if (!attMap.has(key)) attMap.set(key, new Map());
-    attMap.get(key)!.set(dateKey, { status: att.status, wage: att.wage });
+    attMap.get(key)!.set(dateKey, { status: att.status });
   }
 
   const periodFormatter = new Intl.DateTimeFormat("id-ID", {
@@ -57,9 +57,27 @@ export const GET = apiHandler(async (req: NextRequest) => {
     const days: Record<string, string> = {};
     let totalWage = 0;
 
-    for (const [dateKey, { status, wage }] of workerAtt) {
+    // Hitung ulang wage menggunakan upah terbaru dari position
+    for (const [dateKey, { status }] of workerAtt) {
       days[dateKey] = status;
-      totalWage += wage;
+      
+      // Calculate wage based on current position rates
+      let dayWage = 0;
+      switch (status) {
+        case "hadir":
+          dayWage = w.position?.dailyWage ?? 0;
+          break;
+        case "lembur":
+          dayWage = w.position?.overtimeWage ?? w.position?.dailyWage ?? 0;
+          break;
+        case "cor":
+          dayWage = w.position?.castingWage ?? w.position?.dailyWage ?? 0;
+          break;
+        case "alpha":
+          dayWage = 0;
+          break;
+      }
+      totalWage += dayWage;
     }
 
     return {
