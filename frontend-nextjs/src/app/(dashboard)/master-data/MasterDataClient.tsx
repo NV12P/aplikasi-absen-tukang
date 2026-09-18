@@ -63,7 +63,7 @@ export function MasterDataClient() {
   // Open modal for create
   function handleCreate() {
     setEditingId(null);
-    setFormData({ name: "", daily_wage: 0, overtime_wage: null, casting_wage: null });
+    setFormData({ name: "", daily_wage: 0, half_day_wage: null, overtime_wage: null, casting_wage: null });
     setShowModal(true);
   }
 
