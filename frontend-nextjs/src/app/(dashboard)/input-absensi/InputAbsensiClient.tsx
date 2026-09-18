@@ -956,6 +956,8 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
               maxWidth: "500px",
               padding: "24px",
               margin: "16px",
+              maxHeight: "90vh",
+              overflowY: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
