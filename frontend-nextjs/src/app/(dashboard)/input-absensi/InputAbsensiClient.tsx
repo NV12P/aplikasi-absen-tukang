@@ -1043,37 +1043,9 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "12px", justifyContent: "space-between", alignItems: "center" }}>
-              {/* Tombol Batalkan Absensi (kiri) */}
-              <button
-                onClick={handleDeleteAttendance}
-                style={{
-                  padding: "10px 20px",
-                  background: "#fff",
-                  color: "#dc2626",
-                  border: "1px solid #dc2626",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  transition: "all 0.2s",
-                  flex: 1,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#dc2626";
-                  e.currentTarget.style.color = "#fff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#fff";
-                  e.currentTarget.style.color = "#dc2626";
-                }}
-                disabled={submitting}
-              >
-                Batalkan Absensi
-              </button>
-
-              {/* Tombol Batal & Simpan (kanan) */}
-              <div style={{ display: "flex", gap: "12px", flex: 2 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {/* Baris 1: Tombol Batal & Simpan (sejajar) */}
+              <div style={{ display: "flex", gap: "10px" }}>
                 <button
                   className="btn-secondary"
                   onClick={() => {
@@ -1095,6 +1067,34 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                   {submitting ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
+
+              {/* Baris 2: Tombol Batalkan Absensi (full width) */}
+              <button
+                onClick={handleDeleteAttendance}
+                style={{
+                  padding: "10px 20px",
+                  background: "#fff",
+                  color: "#dc2626",
+                  border: "1px solid #dc2626",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  transition: "all 0.2s",
+                  width: "100%",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#dc2626";
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#fff";
+                  e.currentTarget.style.color = "#dc2626";
+                }}
+                disabled={submitting}
+              >
+                Batalkan Absensi
+              </button>
             </div>
           </div>
         </div>
