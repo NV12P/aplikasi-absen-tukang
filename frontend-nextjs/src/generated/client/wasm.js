@@ -135,6 +135,7 @@ exports.Prisma.PositionScalarFieldEnum = {
   id: 'id',
   name: 'name',
   dailyWage: 'dailyWage',
+  halfDayWage: 'halfDayWage',
   overtimeWage: 'overtimeWage',
   castingWage: 'castingWage',
   createdAt: 'createdAt',
@@ -201,6 +202,7 @@ exports.Prisma.NullsOrder = {
 };
 exports.AttendanceStatus = exports.$Enums.AttendanceStatus = {
   hadir: 'hadir',
+  setengah_hari: 'setengah_hari',
   lembur: 'lembur',
   cor: 'cor',
   alpha: 'alpha'

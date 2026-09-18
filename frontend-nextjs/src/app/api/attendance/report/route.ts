@@ -26,7 +26,7 @@ export const GET = apiHandler(async (req: NextRequest) => {
     prisma.project.findUnique({ where: { id: BigInt(projectId) }, select: { name: true } }),
     prisma.worker.findMany({
       where: { projectId: BigInt(projectId), isActive: true },
-      include: { position: { select: { name: true, dailyWage: true, overtimeWage: true, castingWage: true } } },
+      include: { position: { select: { name: true, dailyWage: true, halfDayWage: true, overtimeWage: true, castingWage: true } } },
       orderBy: { name: "asc" },
     }),
     prisma.attendance.findMany({
@@ -66,6 +66,10 @@ export const GET = apiHandler(async (req: NextRequest) => {
       switch (status) {
         case "hadir":
           dayWage = w.position?.dailyWage ?? 0;
+          break;
+        case "setengah_hari":
+          // Jika ada halfDayWage, pakai itu. Kalau tidak, otomatis 50% dari dailyWage
+          dayWage = w.position?.halfDayWage ?? Math.round((w.position?.dailyWage ?? 0) / 2);
           break;
         case "lembur":
           dayWage = w.position?.overtimeWage ?? w.position?.dailyWage ?? 0;

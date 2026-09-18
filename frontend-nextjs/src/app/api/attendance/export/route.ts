@@ -153,6 +153,10 @@ export const GET = apiHandler(async (req: NextRequest) => {
           case "hadir":
             dayWage = worker.position?.dailyWage ?? 0;
             break;
+          case "setengah_hari":
+            // Jika ada halfDayWage, pakai itu. Kalau tidak, otomatis 50% dari dailyWage
+            dayWage = worker.position?.halfDayWage ?? Math.round((worker.position?.dailyWage ?? 0) / 2);
+            break;
           case "lembur":
             dayWage = worker.position?.overtimeWage ?? worker.position?.dailyWage ?? 0;
             break;
@@ -194,6 +198,9 @@ export const GET = apiHandler(async (req: NextRequest) => {
         if (status === "hadir" || status === "lembur") {
           cell.value = "✓";
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: rowBg } };
+        } else if (status === "setengah_hari") {
+          cell.value = "½";
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF9C4" } }; // kuning muda
         } else if (status === "cor") {
           cell.value = "";
           cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD3D3D3" } };

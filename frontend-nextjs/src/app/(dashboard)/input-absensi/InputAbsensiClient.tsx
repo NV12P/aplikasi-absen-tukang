@@ -838,9 +838,9 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                       <td>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <div className="radio-group" style={{ flex: 1 }}>
-                            {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => {
-                              // Disable "hadir" jika sudah hadir di proyek lain
-                              const isDisabled = isAlreadyAttended || (hasAttendedOtherProject && status === "hadir");
+                            {(["hadir", "setengah_hari", "lembur", "cor", "alpha"] as const).map((status) => {
+                              // Disable "hadir" dan "setengah_hari" jika sudah hadir di proyek lain
+                              const isDisabled = isAlreadyAttended || (hasAttendedOtherProject && (status === "hadir" || status === "setengah_hari"));
                               
                               return (
                                 <label
@@ -863,8 +863,8 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                                     }
                                   }}
                                   title={
-                                    hasAttendedOtherProject && status === "hadir"
-                                      ? `Tidak bisa hadir karena sudah hadir di ${worker.attended_other_project?.project_name}`
+                                    hasAttendedOtherProject && (status === "hadir" || status === "setengah_hari")
+                                      ? `Tidak bisa ${status === "hadir" ? "hadir" : "setengah hari"} karena sudah hadir di ${worker.attended_other_project?.project_name}`
                                       : undefined
                                   }
                                 >
@@ -876,7 +876,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                                     onChange={() => {}} // Dummy onChange untuk controlled component
                                     style={{ pointerEvents: 'none' }}
                                   />
-                                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                                  {status === "setengah_hari" ? "½ Hari" : status.charAt(0).toUpperCase() + status.slice(1)}
                                 </label>
                               );
                             })}
@@ -994,9 +994,9 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 Pilih Status Baru
               </label>
               <div className="radio-group" style={{ flexDirection: "column", gap: "8px" }}>
-                {(["hadir", "lembur", "cor", "alpha"] as const).map((status) => {
-                  // Disable "hadir" jika sudah hadir di proyek lain
-                  const isDisabled = editingWorker.attended_other_project && status === "hadir";
+                {(["hadir", "setengah_hari", "lembur", "cor", "alpha"] as const).map((status) => {
+                  // Disable "hadir" dan "setengah_hari" jika sudah hadir di proyek lain
+                  const isDisabled = editingWorker.attended_other_project && (status === "hadir" || status === "setengah_hari");
                   
                   return (
                     <label
@@ -1022,7 +1022,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                       }}
                       title={
                         isDisabled
-                          ? `Tidak bisa hadir karena sudah hadir di ${editingWorker.attended_other_project?.project_name}`
+                          ? `Tidak bisa ${status === "hadir" ? "hadir" : "setengah hari"} karena sudah hadir di ${editingWorker.attended_other_project?.project_name}`
                           : undefined
                       }
                     >
@@ -1034,7 +1034,7 @@ export function InputAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                         onChange={() => {}}
                         style={{ pointerEvents: "none" }}
                       />
-                      <span style={{ flex: 1 }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                      <span style={{ flex: 1 }}>{status === "setengah_hari" ? "½ Hari" : status.charAt(0).toUpperCase() + status.slice(1)}</span>
                     </label>
                   );
                 })}

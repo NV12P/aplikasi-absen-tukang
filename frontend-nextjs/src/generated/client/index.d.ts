@@ -51,6 +51,7 @@ export type Attendance = $Result.DefaultSelection<Prisma.$AttendancePayload>
 export namespace $Enums {
   export const AttendanceStatus: {
   hadir: 'hadir',
+  setengah_hari: 'setengah_hari',
   lembur: 'lembur',
   cor: 'cor',
   alpha: 'alpha'
@@ -2299,6 +2300,7 @@ export namespace Prisma {
   export type PositionAvgAggregateOutputType = {
     id: number | null
     dailyWage: number | null
+    halfDayWage: number | null
     overtimeWage: number | null
     castingWage: number | null
   }
@@ -2306,6 +2308,7 @@ export namespace Prisma {
   export type PositionSumAggregateOutputType = {
     id: bigint | null
     dailyWage: number | null
+    halfDayWage: number | null
     overtimeWage: number | null
     castingWage: number | null
   }
@@ -2314,6 +2317,7 @@ export namespace Prisma {
     id: bigint | null
     name: string | null
     dailyWage: number | null
+    halfDayWage: number | null
     overtimeWage: number | null
     castingWage: number | null
     createdAt: Date | null
@@ -2324,6 +2328,7 @@ export namespace Prisma {
     id: bigint | null
     name: string | null
     dailyWage: number | null
+    halfDayWage: number | null
     overtimeWage: number | null
     castingWage: number | null
     createdAt: Date | null
@@ -2334,6 +2339,7 @@ export namespace Prisma {
     id: number
     name: number
     dailyWage: number
+    halfDayWage: number
     overtimeWage: number
     castingWage: number
     createdAt: number
@@ -2345,6 +2351,7 @@ export namespace Prisma {
   export type PositionAvgAggregateInputType = {
     id?: true
     dailyWage?: true
+    halfDayWage?: true
     overtimeWage?: true
     castingWage?: true
   }
@@ -2352,6 +2359,7 @@ export namespace Prisma {
   export type PositionSumAggregateInputType = {
     id?: true
     dailyWage?: true
+    halfDayWage?: true
     overtimeWage?: true
     castingWage?: true
   }
@@ -2360,6 +2368,7 @@ export namespace Prisma {
     id?: true
     name?: true
     dailyWage?: true
+    halfDayWage?: true
     overtimeWage?: true
     castingWage?: true
     createdAt?: true
@@ -2370,6 +2379,7 @@ export namespace Prisma {
     id?: true
     name?: true
     dailyWage?: true
+    halfDayWage?: true
     overtimeWage?: true
     castingWage?: true
     createdAt?: true
@@ -2380,6 +2390,7 @@ export namespace Prisma {
     id?: true
     name?: true
     dailyWage?: true
+    halfDayWage?: true
     overtimeWage?: true
     castingWage?: true
     createdAt?: true
@@ -2477,6 +2488,7 @@ export namespace Prisma {
     id: bigint
     name: string
     dailyWage: number
+    halfDayWage: number | null
     overtimeWage: number | null
     castingWage: number | null
     createdAt: Date | null
@@ -2506,6 +2518,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     dailyWage?: boolean
+    halfDayWage?: boolean
     overtimeWage?: boolean
     castingWage?: boolean
     createdAt?: boolean
@@ -2518,6 +2531,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     dailyWage?: boolean
+    halfDayWage?: boolean
     overtimeWage?: boolean
     castingWage?: boolean
     createdAt?: boolean
@@ -2528,6 +2542,7 @@ export namespace Prisma {
     id?: boolean
     name?: boolean
     dailyWage?: boolean
+    halfDayWage?: boolean
     overtimeWage?: boolean
     castingWage?: boolean
     createdAt?: boolean
@@ -2549,6 +2564,7 @@ export namespace Prisma {
       id: bigint
       name: string
       dailyWage: number
+      halfDayWage: number | null
       overtimeWage: number | null
       castingWage: number | null
       createdAt: Date | null
@@ -2950,6 +2966,7 @@ export namespace Prisma {
     readonly id: FieldRef<"Position", 'BigInt'>
     readonly name: FieldRef<"Position", 'String'>
     readonly dailyWage: FieldRef<"Position", 'Int'>
+    readonly halfDayWage: FieldRef<"Position", 'Int'>
     readonly overtimeWage: FieldRef<"Position", 'Int'>
     readonly castingWage: FieldRef<"Position", 'Int'>
     readonly createdAt: FieldRef<"Position", 'DateTime'>
@@ -7464,6 +7481,7 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     dailyWage: 'dailyWage',
+    halfDayWage: 'halfDayWage',
     overtimeWage: 'overtimeWage',
     castingWage: 'castingWage',
     createdAt: 'createdAt',
@@ -7716,6 +7734,7 @@ export namespace Prisma {
     id?: BigIntFilter<"Position"> | bigint | number
     name?: StringFilter<"Position"> | string
     dailyWage?: IntFilter<"Position"> | number
+    halfDayWage?: IntNullableFilter<"Position"> | number | null
     overtimeWage?: IntNullableFilter<"Position"> | number | null
     castingWage?: IntNullableFilter<"Position"> | number | null
     createdAt?: DateTimeNullableFilter<"Position"> | Date | string | null
@@ -7727,6 +7746,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrderInput | SortOrder
     overtimeWage?: SortOrderInput | SortOrder
     castingWage?: SortOrderInput | SortOrder
     createdAt?: SortOrderInput | SortOrder
@@ -7741,6 +7761,7 @@ export namespace Prisma {
     NOT?: PositionWhereInput | PositionWhereInput[]
     name?: StringFilter<"Position"> | string
     dailyWage?: IntFilter<"Position"> | number
+    halfDayWage?: IntNullableFilter<"Position"> | number | null
     overtimeWage?: IntNullableFilter<"Position"> | number | null
     castingWage?: IntNullableFilter<"Position"> | number | null
     createdAt?: DateTimeNullableFilter<"Position"> | Date | string | null
@@ -7752,6 +7773,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrderInput | SortOrder
     overtimeWage?: SortOrderInput | SortOrder
     castingWage?: SortOrderInput | SortOrder
     createdAt?: SortOrderInput | SortOrder
@@ -7770,6 +7792,7 @@ export namespace Prisma {
     id?: BigIntWithAggregatesFilter<"Position"> | bigint | number
     name?: StringWithAggregatesFilter<"Position"> | string
     dailyWage?: IntWithAggregatesFilter<"Position"> | number
+    halfDayWage?: IntNullableWithAggregatesFilter<"Position"> | number | null
     overtimeWage?: IntNullableWithAggregatesFilter<"Position"> | number | null
     castingWage?: IntNullableWithAggregatesFilter<"Position"> | number | null
     createdAt?: DateTimeNullableWithAggregatesFilter<"Position"> | Date | string | null
@@ -8147,6 +8170,7 @@ export namespace Prisma {
     id?: bigint | number
     name: string
     dailyWage: number
+    halfDayWage?: number | null
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -8158,6 +8182,7 @@ export namespace Prisma {
     id?: bigint | number
     name: string
     dailyWage: number
+    halfDayWage?: number | null
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -8169,6 +8194,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     dailyWage?: IntFieldUpdateOperationsInput | number
+    halfDayWage?: NullableIntFieldUpdateOperationsInput | number | null
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8180,6 +8206,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     dailyWage?: IntFieldUpdateOperationsInput | number
+    halfDayWage?: NullableIntFieldUpdateOperationsInput | number | null
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8191,6 +8218,7 @@ export namespace Prisma {
     id?: bigint | number
     name: string
     dailyWage: number
+    halfDayWage?: number | null
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -8201,6 +8229,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     dailyWage?: IntFieldUpdateOperationsInput | number
+    halfDayWage?: NullableIntFieldUpdateOperationsInput | number | null
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8211,6 +8240,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     dailyWage?: IntFieldUpdateOperationsInput | number
+    halfDayWage?: NullableIntFieldUpdateOperationsInput | number | null
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -8684,6 +8714,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrder
     overtimeWage?: SortOrder
     castingWage?: SortOrder
     createdAt?: SortOrder
@@ -8693,6 +8724,7 @@ export namespace Prisma {
   export type PositionAvgOrderByAggregateInput = {
     id?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrder
     overtimeWage?: SortOrder
     castingWage?: SortOrder
   }
@@ -8701,6 +8733,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrder
     overtimeWage?: SortOrder
     castingWage?: SortOrder
     createdAt?: SortOrder
@@ -8711,6 +8744,7 @@ export namespace Prisma {
     id?: SortOrder
     name?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrder
     overtimeWage?: SortOrder
     castingWage?: SortOrder
     createdAt?: SortOrder
@@ -8720,6 +8754,7 @@ export namespace Prisma {
   export type PositionSumOrderByAggregateInput = {
     id?: SortOrder
     dailyWage?: SortOrder
+    halfDayWage?: SortOrder
     overtimeWage?: SortOrder
     castingWage?: SortOrder
   }
@@ -9953,6 +9988,7 @@ export namespace Prisma {
     id?: bigint | number
     name: string
     dailyWage: number
+    halfDayWage?: number | null
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -9963,6 +9999,7 @@ export namespace Prisma {
     id?: bigint | number
     name: string
     dailyWage: number
+    halfDayWage?: number | null
     overtimeWage?: number | null
     castingWage?: number | null
     createdAt?: Date | string | null
@@ -10038,6 +10075,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     dailyWage?: IntFieldUpdateOperationsInput | number
+    halfDayWage?: NullableIntFieldUpdateOperationsInput | number | null
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10048,6 +10086,7 @@ export namespace Prisma {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
     name?: StringFieldUpdateOperationsInput | string
     dailyWage?: IntFieldUpdateOperationsInput | number
+    halfDayWage?: NullableIntFieldUpdateOperationsInput | number | null
     overtimeWage?: NullableIntFieldUpdateOperationsInput | number | null
     castingWage?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

@@ -15,7 +15,7 @@ interface WorkerRow {
   worker_name: string;
   position: string;
   daily_wage: number;
-  days: Record<string, "hadir" | "lembur" | "cor" | "alpha">;
+  days: Record<string, "hadir" | "setengah_hari" | "lembur" | "cor" | "alpha">;
   total_wage: number;
 }
 
@@ -59,6 +59,10 @@ const DayCell = ({ status }: { status?: string }) => {
   if (norm === "hadir" || norm === "lembur") {
     content = "✓";
     color = "#15803d";
+  } else if (norm === "setengah_hari") {
+    content = "½";
+    color = "#ca8a04";
+    bg = "#fef9c3";
   } else if (norm === "alpha") {
     bg = "#ef4444";
     color = "white";
@@ -541,6 +545,7 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
       >
         {[
           { color: "transparent", border: "1px solid var(--border-color)", label: "Hadir / Lembur", symbol: "✓" },
+          { color: "#fef9c3", border: "1px solid #fde047", label: "Setengah Hari", symbol: "½", textColor: "#ca8a04" },
           { color: "#ef4444", label: "Alpha (Tidak Hadir)" },
           { color: "#9ca3af", label: "Cor" },
           { color: "transparent", border: "1px solid var(--border-color)", label: "Tidak Ada Data" },
@@ -558,7 +563,7 @@ export function RekapAbsensiClient({ projects }: { projects: ProjectOption[] }) 
                 borderRadius: "4px",
                 fontSize: "13px",
                 fontWeight: 700,
-                color: item.color === "transparent" ? "var(--text-main)" : "white",
+                color: item.textColor ?? (item.color === "transparent" ? "var(--text-main)" : "white"),
                 flexShrink: 0,
               }}
             >

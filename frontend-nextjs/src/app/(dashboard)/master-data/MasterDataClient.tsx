@@ -8,6 +8,7 @@ interface Position {
   id: number;
   name: string;
   daily_wage: number;
+  half_day_wage: number | null;
   overtime_wage: number | null;
   casting_wage: number | null;
 }
@@ -15,6 +16,7 @@ interface Position {
 interface FormData {
   name: string;
   daily_wage: number;
+  half_day_wage: number | null;
   overtime_wage: number | null;
   casting_wage: number | null;
 }
@@ -32,6 +34,7 @@ export function MasterDataClient() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     daily_wage: 0,
+    half_day_wage: null,
     overtime_wage: null,
     casting_wage: null,
   });
@@ -70,6 +73,7 @@ export function MasterDataClient() {
     setFormData({
       name: position.name,
       daily_wage: position.daily_wage,
+      half_day_wage: position.half_day_wage,
       overtime_wage: position.overtime_wage,
       casting_wage: position.casting_wage,
     });
@@ -160,23 +164,24 @@ export function MasterDataClient() {
             <thead>
               <tr>
                 <th style={{ width: "5%" }}>No</th>
-                <th style={{ width: "25%" }}>Nama Jabatan</th>
-                <th style={{ width: "20%" }}>Upah Harian</th>
-                <th style={{ width: "20%" }}>Upah Lembur</th>
-                <th style={{ width: "20%" }}>Upah Cor</th>
+                <th style={{ width: "20%" }}>Nama Jabatan</th>
+                <th style={{ width: "15%" }}>Upah Harian</th>
+                <th style={{ width: "15%" }}>Upah ½ Hari</th>
+                <th style={{ width: "15%" }}>Upah Lembur</th>
+                <th style={{ width: "15%" }}>Upah Cor</th>
                 <th style={{ width: "10%", textAlign: "center" }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "32px" }}>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "32px" }}>
                     Loading...
                   </td>
                 </tr>
               ) : positions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
+                  <td colSpan={7} style={{ textAlign: "center", padding: "32px", color: "var(--text-muted)" }}>
                     Belum ada data jabatan
                   </td>
                 </tr>
@@ -186,6 +191,7 @@ export function MasterDataClient() {
                     <td style={{ textAlign: "center" }}>{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{position.name}</td>
                     <td>{formatRupiah(position.daily_wage)}</td>
+                    <td>{position.half_day_wage !== null ? formatRupiah(position.half_day_wage) : <span style={{ color: "var(--text-muted)", fontSize: "12px" }}>Auto 50%</span>}</td>
                     <td>{position.overtime_wage !== null ? formatRupiah(position.overtime_wage) : "-"}</td>
                     <td>{position.casting_wage !== null ? formatRupiah(position.casting_wage) : "-"}</td>
                     <td>
@@ -253,6 +259,22 @@ export function MasterDataClient() {
                     value={formData.daily_wage || ""}
                     onChange={(e) => setFormData({ ...formData, daily_wage: Number(e.target.value) })}
                     required
+                    min="0"
+                  />
+                </div>
+
+                {/* Upah Setengah Hari */}
+                <div className="form-group">
+                  <label>Upah Setengah Hari (Rp) - Opsional</label>
+                  <input
+                    type="number"
+                    className="input-field"
+                    placeholder="Kosongkan untuk otomatis 50% upah harian"
+                    value={formData.half_day_wage ?? ""}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      half_day_wage: e.target.value === "" ? null : Number(e.target.value) 
+                    })}
                     min="0"
                   />
                 </div>
